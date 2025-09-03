@@ -1,9 +1,11 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
+import './App.css'
 
 function Welcome() {
   return (
+    <center>
     <div className="flex flex-col items-center justify-center h-screen gap-4">
       <h1 className="text-3xl font-bold">Welcome to askDB</h1>
       <div className="flex gap-4">
@@ -19,6 +21,7 @@ function Welcome() {
         </Link>
       </div>
     </div>
+    </center>
   );
 }
 
