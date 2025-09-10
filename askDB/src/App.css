@@ -8,6 +8,10 @@
 .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
 .font-bold { font-weight: 700; }
 
+/* Center helper */
+.justify-center { justify-content: center; }
+.w-full { width: 100%; }
+
 /* Spacing utilities */
 .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
 .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
@@ -42,7 +46,23 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 
 /* Ensure welcome title is white over background */
 .welcome-content h1 { color: #ffffff; }
+.welcome-content h2 { color: #ffffff; }
 
+/* Remove gaps and center embedded login on main page */
+.welcome-content h1,
+.welcome-content h2 {
+  margin: 0;
+  text-align: center;
+}
+.welcome-content .auth-container {
+  min-height: auto;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+}
+.welcome-content .auth-form {
+  margin: 0 auto;
+}
 
 /* Auth pages centering and styling */
 .auth-container {
@@ -63,7 +83,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 5px;
 }
 
 .auth-form h2 {
@@ -137,7 +157,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 .google-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   padding: 12px 16px;
   background: #ffffff;
   color: #111827;
@@ -149,3 +169,37 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 .google-btn:hover { background: #b2b4b7; }
 .google-btn:active { background: #b5b9c2; border-color: #d1d5db; }
 .google-icon { width: 20px; height: 20px; }
+
+/* Two-column welcome split */
+.welcome-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 1100px;
+  padding: 0 16px;
+}
+.welcome-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.welcome-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 800px) {
+  .welcome-split {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .welcome-left {
+    align-items: center;
+  }
+}
