@@ -31,6 +31,19 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
   gap: 1rem;
 }
 
+/* Welcome page background */
+.welcome-bg {
+  position: relative;
+  background: url('https://static.vecteezy.com/system/resources/thumbnails/063/618/674/small_2x/background-consisting-of-square-elements-sci-fi-mesh-technology-glowing-surface-video.jpg') center/cover no-repeat fixed;
+}
+.welcome-content {
+  backdrop-filter: saturate(120%) brightness(110%);
+}
+
+/* Ensure welcome title is white over background */
+.welcome-content h1 { color: #ffffff; }
+
+
 /* Auth pages centering and styling */
 .auth-container {
   display: flex;
@@ -64,7 +77,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: #374151;
+  color: #bbc4d1;
   font-weight: 600;
 }
 

@@ -7,7 +7,7 @@ import './App.css'
 function Welcome() {
   return (
     <center>
-    <div className="flex flex-col items-center justify-center h-screen gap-4">
+    <div className="flex flex-col items-center justify-center h-screen gap-4 welcome-bg welcome-content">
       <h1 className="text-3xl font-bold">Welcome to askDB</h1>
       <div className="flex gap-4">
         <Link to="/signup">
