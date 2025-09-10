@@ -13,44 +13,46 @@ function Signup() {
   }
 
   return (
-    <div className="auth-container">
-      <h2>Sign up</h2>
-      <form onSubmit={handleSubmit} className="auth-form">
-        <label>
-          Name
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            required
-          />
-        </label>
-        <label>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Create a password"
-            required
-          />
-        </label>
-        <button type="submit">Create account</button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Log in</Link>
-      </p>
+    <div className="flex flex-col items-center justify-center h-screen welcome-bg welcome-content">
+      <div className="auth-container">
+        <h2>Sign up</h2>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label>
+            Name
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              required
+            />
+          </label>
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Create a password"
+              required
+            />
+          </label>
+          <button type="submit">Create account</button>
+        </form>
+        <p>
+          Already have an account? <Link to="/login">Log in</Link>
+        </p>
+      </div>
     </div>
   )
 }

@@ -10,6 +10,7 @@
 
 /* Center helper */
 .justify-center { justify-content: center; }
+.justify-start { justify-content: flex-start; }
 .w-full { width: 100%; }
 
 /* Spacing utilities */
@@ -38,7 +39,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 /* Welcome page background */
 .welcome-bg {
   position: relative;
-  background: url('cloud-computing-2001090_1920.jpg') center/cover no-repeat fixed;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('cloud-computing-2001090_1920.jpg') center/cover no-repeat fixed;
 }
 .welcome-content {
   backdrop-filter: saturate(120%) brightness(110%);
@@ -47,6 +48,16 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 /* Ensure welcome title is white over background */
 .welcome-content h1 { color: #ffffff; }
 .welcome-content h2 { color: #ffffff; }
+
+/* Brand title light frame */
+.brand-title {
+  display: inline-block;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
 
 /* Remove gaps and center embedded login on main page */
 .welcome-content h1,
@@ -118,7 +129,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 
 .auth-form button {
   padding: 12px 16px;
-  background-color: #1b0ab7;
+  background-color: #057f3a;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -129,7 +140,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 }
 
 .auth-form button:hover {
-  background-color: #1e40af;
+  background-color: #0ec34d;
 }
 
 .auth-form button:active {
@@ -185,6 +196,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
+  margin-top: -200px;
 }
 .welcome-right {
   display: flex;
