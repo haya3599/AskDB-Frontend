@@ -129,7 +129,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 
 .auth-form button {
   padding: 12px 16px;
-  background-color: #057f3a;
+  background-color: #03733f;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -140,7 +140,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 }
 
 .auth-form button:hover {
-  background-color: #0ec34d;
+  background-color: #36af1e;
 }
 
 .auth-form button:active {
