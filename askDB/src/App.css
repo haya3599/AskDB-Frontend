@@ -13,12 +13,12 @@
 .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
 
 /* Button utilities used on welcome page */
-.text-white { color: #ffffff; }
+.text-white { color: #1f0edd; }
 .rounded-xl { border-radius: 0.75rem; }
-.bg-blue-600 { background-color: #2563eb; }
-.hover\:bg-blue-800:hover { background-color: #1e40af; }
-.bg-green-600 { background-color: #16a34a; }
-.hover\:bg-green-800:hover { background-color: #166534; }
+.bg-blue-600 { background-color: #ffffff; }
+.hover\:bg-blue-800:hover { background-color: #449be1; }
+.bg-green-600 { background-color: #fefffe; }
+.hover\:bg-green-800:hover { background-color: #31e3cb; }
 button { border: none; cursor: pointer; transition: background-color 0.2s ease; }
 
 /* Welcome layout fallback (in case utilities change) */
@@ -98,7 +98,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 
 .auth-form button {
   padding: 12px 16px;
-  background-color: #2563eb;
+  background-color: #1b0ab7;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -178,5 +178,6 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
   font-weight: 700;
   cursor: pointer;
 }
-.google-btn:hover { background: #f9fafb; }
+.google-btn:hover { background: #b2b4b7; }
+.google-btn:active { background: #b5b9c2; border-color: #d1d5db; }
 .google-icon { width: 20px; height: 20px; }
