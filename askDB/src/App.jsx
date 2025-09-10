@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
+import Chat from './pages/Chat.jsx'
 import './App.css'
 
 function Welcome() {
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/" element={<Welcome />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/chat" element={<Chat />} />
     </Routes>
   );
 }
