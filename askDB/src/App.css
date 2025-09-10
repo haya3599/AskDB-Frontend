@@ -10,7 +10,9 @@
 
 /* Center helper */
 .justify-center { justify-content: center; }
+.justify-start { justify-content: flex-start; }
 .w-full { width: 100%; }
+.pt-20 { padding-top: 5rem; }
 
 /* Spacing utilities */
 .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
