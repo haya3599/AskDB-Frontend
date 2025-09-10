@@ -38,7 +38,7 @@ button { border: none; cursor: pointer; transition: background-color 0.2s ease; 
 /* Welcome page background */
 .welcome-bg {
   position: relative;
-  background: url('https://static.vecteezy.com/system/resources/thumbnails/063/618/674/small_2x/background-consisting-of-square-elements-sci-fi-mesh-technology-glowing-surface-video.jpg') center/cover no-repeat fixed;
+  background: url('/background.jpg') center/cover no-repeat fixed;
 }
 .welcome-content {
   backdrop-filter: saturate(120%) brightness(110%);
