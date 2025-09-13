@@ -23,6 +23,8 @@ export default function Chat() {
   const [conversations, setConversations] = useState([])
   const [currentConversationId, setCurrentConversationId] = useState(null)
   const [loadingConversation, setLoadingConversation] = useState(false)
+  const [deletingConversation, setDeletingConversation] = useState(null)
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   
   // Refs and hooks
   const listRef = useRef(null)
@@ -49,6 +51,21 @@ export default function Chat() {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
   }, [messages])
+
+  // Handle scroll events to show/hide scroll to bottom button
+  useEffect(() => {
+    const scrollContainer = listRef.current
+    if (!scrollContainer) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 50
+      setShowScrollToBottom(!isNearBottom)
+    }
+
+    scrollContainer.addEventListener('scroll', handleScroll)
+    return () => scrollContainer.removeEventListener('scroll', handleScroll)
+  }, [messages]) // Re-attach when messages change
 
   /**
    * Load user's conversation list from the backend
@@ -126,6 +143,57 @@ export default function Chat() {
   }
 
   /**
+   * Scroll to the bottom of the message list
+   */
+  const scrollToBottom = () => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight
+    }
+  }
+
+  /**
+   * Delete a conversation
+   * 
+   * @param {string} conversationId - ID of the conversation to delete
+   */
+  const deleteConversation = async (conversationId) => {
+    // Validate conversationId
+    if (!conversationId || typeof conversationId !== 'string') {
+      setError('Invalid conversation ID');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingConversation(conversationId);
+    setError('');
+
+    try {
+      await chatAPI.deleteConversation(conversationId);
+      
+      // Remove from local state
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      // If this was the current conversation, start a new one
+      if (currentConversationId === conversationId) {
+        startNewChat();
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      
+      // Parse error message from API response
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Failed to delete conversation';
+      setError(errorMessage);
+    } finally {
+      setDeletingConversation(null);
+    }
+  };
+
+  /**
    * Load conversation history and display messages in structured format
    * 
    * @param {string} conversationId - ID of the conversation to load
@@ -195,21 +263,33 @@ export default function Chat() {
             {conversations.length > 0 ? (
               <div className="conversation-list">
                 {conversations.map((conv) => (
-                  <button
+                  <div
                     key={conv.id}
-                    className={`conversation-item ${currentConversationId === conv.id ? 'active' : ''}`}
-                    onClick={() => loadConversation(conv.id)}
-                    disabled={loadingConversation}
+                    className={`conversation-item-wrapper ${currentConversationId === conv.id ? 'active' : ''}`}
                   >
-                    <div className="conversation-title">
-                      {conv.title || `Conversation ${conv.id.slice(0, 8)}`}
-                    </div>
-                    {conv.last_message_at && (
-                      <div className="conversation-time">
-                        {new Date(conv.last_message_at).toLocaleDateString()}
+                    <button
+                      className="conversation-item"
+                      onClick={() => loadConversation(conv.id)}
+                      disabled={loadingConversation}
+                    >
+                      <div className="conversation-content">
+                        <div className="conversation-title">
+                          {conv.title || `Conversation ${conv.id.slice(0, 8)}`}
+                        </div>
                       </div>
-                    )}
-                  </button>
+                    </button>
+                    <button
+                      className="conversation-delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteConversation(conv.id);
+                      }}
+                      title="Delete conversation"
+                      disabled={loadingConversation || deletingConversation === conv.id}
+                    >
+                      {deletingConversation === conv.id ? '⏳' : '🗑️'}
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -240,6 +320,16 @@ export default function Chat() {
               </div>
             ))}
           </div>
+          
+          {showScrollToBottom && (
+            <button 
+              className="scroll-to-bottom-btn"
+              onClick={scrollToBottom}
+              title="Scroll to latest message"
+            >
+              ↓
+            </button>
+          )}
 
           <form className="composer" onSubmit={handleSubmit}>
             <input

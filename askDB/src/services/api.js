@@ -133,6 +133,15 @@ export const chatAPI = {
    */
   getConversationHistory: (conversationId) => 
     api.get(`/chat/history/${conversationId}`),
+  
+  /**
+   * Delete a conversation
+   * 
+   * @param {string} conversationId - ID of the conversation to delete
+   * @returns {Promise} Axios response with deletion confirmation
+   */
+  deleteConversation: (conversationId) => 
+    api.delete(`/chat/conversations/${conversationId}`),
 };
 
 /**
