@@ -117,7 +117,7 @@
 }
 .results-label {
   font-weight: 700;
-  color: #ffffff;
+  color: #e2e8f0;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -251,7 +251,7 @@
 .conversation-item {
   background: transparent;
   border: none;
-  color: #a0aec0;
+  color: #c0aaa0;
   padding: 12px 16px;
   border-radius: 10px;
   cursor: pointer;
