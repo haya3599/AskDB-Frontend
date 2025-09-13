@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import { chatAPI } from '../services/api'
 import MessageContent from '../components/MessageContent'
 import './Chat.css'
@@ -19,7 +20,6 @@ export default function Chat() {
   ])
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
-  const [error, setError] = useState('')
   const [conversations, setConversations] = useState([])
   const [currentConversationId, setCurrentConversationId] = useState(null)
   const [loadingConversation, setLoadingConversation] = useState(false)
@@ -30,6 +30,7 @@ export default function Chat() {
   const listRef = useRef(null)
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
+  const { success: showSuccess, error: showError, info: showInfo } = useToast()
 
   // Authentication guard - redirect to login if not authenticated
   useEffect(() => {
@@ -88,8 +89,6 @@ export default function Chat() {
     e.preventDefault()
     const trimmed = input.trim()
     if (!trimmed || isSending) return
-
-    setError('')
     
     // Add user message to chat immediately
     const userMsg = { id: crypto.randomUUID(), role: 'user', content: trimmed }
@@ -121,7 +120,7 @@ export default function Chat() {
       // Refresh conversation list to show updates
       loadConversations()
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to send message')
+      showError(error.response?.data?.message || 'Failed to send message')
       const errorMsg = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -139,7 +138,7 @@ export default function Chat() {
   const startNewChat = () => {
     setMessages([{ id: 'm1', role: 'assistant', content: 'New conversation started. How can I help?' }])
     setCurrentConversationId(null)
-    setError('')
+    showInfo('New conversation started')
   }
 
   /**
@@ -159,7 +158,7 @@ export default function Chat() {
   const deleteConversation = async (conversationId) => {
     // Validate conversationId
     if (!conversationId || typeof conversationId !== 'string') {
-      setError('Invalid conversation ID');
+      showError('Invalid conversation ID');
       return;
     }
 
@@ -168,7 +167,6 @@ export default function Chat() {
     }
 
     setDeletingConversation(conversationId);
-    setError('');
 
     try {
       await chatAPI.deleteConversation(conversationId);
@@ -180,6 +178,8 @@ export default function Chat() {
       if (currentConversationId === conversationId) {
         startNewChat();
       }
+      
+      showSuccess('Conversation deleted successfully');
     } catch (error) {
       console.error('Failed to delete conversation:', error);
       
@@ -187,7 +187,7 @@ export default function Chat() {
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.error || 
                           'Failed to delete conversation';
-      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setDeletingConversation(null);
     }
@@ -199,8 +199,12 @@ export default function Chat() {
    * @param {string} conversationId - ID of the conversation to load
    */
   const loadConversation = async (conversationId) => {
+    // Don't reload if this conversation is already active
+    if (currentConversationId === conversationId) {
+      return;
+    }
+    
     setLoadingConversation(true)
-    setError('')
     
     try {
       const response = await chatAPI.getConversationHistory(conversationId)
@@ -236,7 +240,8 @@ export default function Chat() {
       setMessages(transformedMessages)
       setCurrentConversationId(conversationId)
     } catch (error) {
-      setError('Failed to load conversation')
+      console.error('Failed to load conversation:', error)
+      showError('Failed to load conversation')
     } finally {
       setLoadingConversation(false)
     }
@@ -269,7 +274,14 @@ export default function Chat() {
                   >
                     <button
                       className="conversation-item"
-                      onClick={() => loadConversation(conv.id)}
+                      onClick={() => {
+                        if (currentConversationId === conv.id) {
+                          // Already active - provide subtle feedback
+                          showInfo('This conversation is already active');
+                        } else {
+                          loadConversation(conv.id);
+                        }
+                      }}
                       disabled={loadingConversation}
                     >
                       <div className="conversation-content">
@@ -299,7 +311,6 @@ export default function Chat() {
         </aside>
 
         <section className="chat-content">
-          {error && <div className="error-message">{error}</div>}
           {loadingConversation && (
             <div className="loading-conversation">
               <div className="loading-spinner"></div>

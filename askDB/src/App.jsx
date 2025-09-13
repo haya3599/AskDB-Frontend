@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
+import { ToastProvider } from './contexts/ToastContext'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Chat from './pages/Chat.jsx'
@@ -66,22 +67,24 @@ function PublicRoute({ children }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={
-        <PublicRoute>
-          <Welcome />
-        </PublicRoute>
-      } />
-      <Route path="/signup" element={
-        <PublicRoute>
-          <Signup />
-        </PublicRoute>
-      } />
-      <Route path="/chat" element={
-        <ProtectedRoute>
-          <Chat />
-        </ProtectedRoute>
-      } />
-    </Routes>
+    <ToastProvider>
+      <Routes>
+        <Route path="/" element={
+          <PublicRoute>
+            <Welcome />
+          </PublicRoute>
+        } />
+        <Route path="/signup" element={
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        } />
+        <Route path="/chat" element={
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </ToastProvider>
   );
 }

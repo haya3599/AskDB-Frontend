@@ -295,11 +295,17 @@
   opacity: 1;
 }
 
+/* Active conversation click feedback */
+.conversation-item-wrapper.active:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
 /* Scroll to Bottom Button */
 .scroll-to-bottom-btn {
   position: fixed;
   bottom: 80px;
-  left: 50%;
+  left: 60%;
   transform: translateX(-50%);
   width: 40px;
   height: 40px;
