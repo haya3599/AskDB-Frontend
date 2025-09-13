@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './contexts/AuthContext'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Chat from './pages/Chat.jsx'
@@ -41,12 +42,46 @@ function Welcome() {
   );
 }
 
+// Protected Route component
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  return isAuthenticated() ? children : <Navigate to="/" replace />;
+}
+
+// Public Route component (redirect to chat if already authenticated)
+function PublicRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  return isAuthenticated() ? <Navigate to="/chat" replace /> : children;
+}
+
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Welcome />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/chat" element={<Chat />} />
+      <Route path="/" element={
+        <PublicRoute>
+          <Welcome />
+        </PublicRoute>
+      } />
+      <Route path="/signup" element={
+        <PublicRoute>
+          <Signup />
+        </PublicRoute>
+      } />
+      <Route path="/chat" element={
+        <ProtectedRoute>
+          <Chat />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 }

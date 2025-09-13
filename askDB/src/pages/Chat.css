@@ -1,17 +1,17 @@
-.chat-layout { display: flex; flex-direction: column; height: 100vh; background: #0b0e14; color: #e5e7eb; }
+.chat-layout { display: flex; flex-direction: column; height: 100vh; background: #0b0e14; color: #ffffff; }
 .chat-header { height: 56px; border-bottom: 1px solid #1f2430; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #0f131b; }
 .chat-header-left { display: flex; align-items: center; gap: 12px; }
 .chat-logo { color: #93c5fd; text-decoration: none; font-weight: 800; }
-.chat-title { color: #cbd5e1; font-weight: 700; }
+.chat-title { color: #ffffff; font-weight: 700; }
 .chat-header-right { display: flex; align-items: center; gap: 12px; }
 .chat-header-link { color: #93c5fd; text-decoration: none; font-weight: 600; }
 .chat-header-link:hover { text-decoration: underline; }
 
 .chat-main { display: flex; min-height: 0; flex: 1; }
 .chat-sidebar { width: 260px; border-right: 1px solid #1f2430; background: #0f131b; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-.new-chat-btn { background: #1e293b; color: #e5e7eb; border: 1px solid #263041; border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.new-chat-btn { background: #1e293b; color: #ffffff; border: 1px solid #263041; border-radius: 10px; padding: 10px 12px; cursor: pointer; }
 .new-chat-btn:hover { background: #253346; }
-.sidebar-sections { color: #94a3b8; font-size: 14px; }
+.sidebar-sections { color: #ffffff; font-size: 14px; }
 .sidebar-section-title { font-weight: 700; margin: 8px 0; }
 .sidebar-empty { opacity: 0.7; }
 
@@ -20,15 +20,156 @@
 .message-row { display: flex; gap: 12px; align-items: flex-start; }
 .message-row.user { flex-direction: row-reverse; }
 .avatar { width: 32px; height: 32px; border-radius: 999px; background: #1f2937; display: grid; place-items: center; font-weight: 800; color: #93c5fd; }
-.bubble { max-width: 75ch; padding: 12px 14px; border-radius: 14px; line-height: 1.5; }
-.message-row.assistant .bubble { background: #121826; border: 1px solid #1f2430; }
-.message-row.user .bubble { background: #1e293b; border: 1px solid #263041; }
+.bubble { max-width: 75ch; padding: 12px 14px; border-radius: 14px; line-height: 1.5; color: #ffffff !important; }
+.bubble * { color: #ffffff !important; }
+.message-row.assistant .bubble { background: #121826; border: 1px solid #1f2430; color: #ffffff !important; }
+.message-row.user .bubble { background: #1e293b; border: 1px solid #263041; color: #ffffff !important; }
 
 .composer { border-top: 1px solid #1f2430; padding: 12px; display: flex; gap: 8px; background: linear-gradient(180deg, rgba(15,19,27,0.8), rgba(15,19,27,1)); }
-.composer-input { flex: 1; background: #0b0e14; color: #e5e7eb; border: 1px solid #1f2430; border-radius: 12px; padding: 12px 14px; outline: none; }
+.composer-input { flex: 1; background: #0b0e14; color: #ffffff; border: 1px solid #1f2430; border-radius: 12px; padding: 12px 14px; outline: none; }
 .composer-input:focus { border-color: #3759d6; box-shadow: 0 0 0 3px rgba(55,89,214,0.2); }
 .composer-send { background: #3759d6; color: white; border: none; border-radius: 12px; padding: 0 16px; font-weight: 700; cursor: pointer; }
 .composer-send:disabled { opacity: 0.5; cursor: not-allowed; }
 .composer-send:hover:not(:disabled) { background: #2e49b4; }
+
+/* Message Content Styling */
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.message-text {
+  color: #ffffff !important;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* SQL Section - Dark Theme */
+.sql-section {
+  background: #0a0a0a;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.sql-header {
+  background: #1a202c;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2d3748;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sql-label {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.copy-btn {
+  background: #2d3748;
+  color: #ffffff;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.copy-btn:hover {
+  background: #4a5568;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.sql-code {
+  padding: 16px;
+  background: #0a0a0a;
+}
+.sql-code pre {
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #ffffff;
+  overflow-x: auto;
+}
+.sql-code code {
+  color: #60a5fa;
+  background: transparent;
+}
+
+/* Results Section - Dark Theme */
+.results-section {
+  background: #0a0a0a;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.results-header {
+  background: #1a202c;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2d3748;
+}
+.results-label {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.results-table-container {
+  padding: 16px;
+  overflow-x: auto;
+}
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #0a0a0a;
+}
+.results-table th {
+  background: #1a202c;
+  color: #ffffff;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #2d3748;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.results-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #2d3748;
+  color: #ffffff;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.results-table tr:hover td {
+  background: #1a202c;
+  color: #ffffff;
+}
+.results-info {
+  padding: 12px 16px;
+  background: #1a202c;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  border-top: 1px solid #2d3748;
+}
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: #ffffff;
+  font-style: italic;
+  font-size: 14px;
+}
 
 

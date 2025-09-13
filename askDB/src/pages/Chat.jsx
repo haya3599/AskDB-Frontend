@@ -1,41 +1,177 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { chatAPI } from '../services/api'
+import MessageContent from '../components/MessageContent'
 import './Chat.css'
 
+/**
+ * Chat Component
+ * 
+ * Main chat interface for AskDB application. Handles real-time messaging,
+ * conversation management, and AI interaction. Provides a ChatGPT-like
+ * experience with structured message display including SQL queries and results.
+ */
 export default function Chat() {
+  // State management for chat functionality
   const [messages, setMessages] = useState([
     { id: 'm1', role: 'assistant', content: 'Hi! Ask me anything about your database.' }
   ])
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState('')
+  const [conversations, setConversations] = useState([])
+  const [currentConversationId, setCurrentConversationId] = useState(null)
+  const [loadingConversation, setLoadingConversation] = useState(false)
+  
+  // Refs and hooks
   const listRef = useRef(null)
+  const navigate = useNavigate()
+  const { user, isAuthenticated, logout } = useAuth()
 
+  // Authentication guard - redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/')
+    }
+  }, [isAuthenticated, navigate])
+
+  // Load user conversations on component mount
+  useEffect(() => {
+    if (isAuthenticated()) {
+      loadConversations()
+    }
+  }, [isAuthenticated])
+
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
   }, [messages])
 
-  function handleSubmit(e) {
+  /**
+   * Load user's conversation list from the backend
+   */
+  const loadConversations = async () => {
+    try {
+      const response = await chatAPI.getConversations()
+      setConversations(response.data.conversations || [])
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+    }
+  }
+
+  /**
+   * Handle message submission and AI processing
+   * 
+   * @param {Event} e - Form submit event
+   */
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const trimmed = input.trim()
     if (!trimmed || isSending) return
 
+    setError('')
+    
+    // Add user message to chat immediately
     const userMsg = { id: crypto.randomUUID(), role: 'user', content: trimmed }
     setMessages((prev) => [...prev, userMsg])
     setInput('')
     setIsSending(true)
 
-    // Simulate assistant response. Replace with API call later.
-    setTimeout(() => {
+    try {
+      // Send message to backend with current conversation context
+      const response = await chatAPI.sendMessage(trimmed, null, currentConversationId)
+      const { message, conversation_id, data } = response.data
+      
+      // Create structured assistant message with SQL and results
       const assistantMsg = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `You said: "${trimmed}". (This is a demo response.)`
+        content: message,
+        sql: data?.sql || null,
+        results: data?.results || null,
+        actionType: data?.action_type || 'chat'
       }
       setMessages((prev) => [...prev, assistantMsg])
+      
+      // Update conversation ID for new or changed conversations
+      if (conversation_id && conversation_id !== currentConversationId) {
+        setCurrentConversationId(conversation_id)
+      }
+      
+      // Refresh conversation list to show updates
+      loadConversations()
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to send message')
+      const errorMsg = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      }
+      setMessages((prev) => [...prev, errorMsg])
+    } finally {
       setIsSending(false)
-    }, 600)
+    }
+  }
+
+  /**
+   * Start a new conversation by resetting the chat state
+   */
+  const startNewChat = () => {
+    setMessages([{ id: 'm1', role: 'assistant', content: 'New conversation started. How can I help?' }])
+    setCurrentConversationId(null)
+    setError('')
+  }
+
+  /**
+   * Load conversation history and display messages in structured format
+   * 
+   * @param {string} conversationId - ID of the conversation to load
+   */
+  const loadConversation = async (conversationId) => {
+    setLoadingConversation(true)
+    setError('')
+    
+    try {
+      const response = await chatAPI.getConversationHistory(conversationId)
+      const messages = response.data.messages || []
+      
+      // Transform database messages into chat format with user/assistant pairs
+      const transformedMessages = messages.map(msg => {
+        // Create user message from stored prompt
+        const userMessage = {
+          id: `${msg.id}-user`,
+          role: 'user',
+          content: msg.prompt || 'User message',
+          timestamp: msg.timestamp
+        }
+        
+        // Create assistant message with AI response and structured data
+        const assistantMessage = {
+          id: msg.id,
+          role: 'assistant',
+          content: msg.ai_response || 'Query executed successfully.',
+          sql: msg.sql_query || null,
+          results: msg.results || null,
+          actionType: msg.query_type || 'chat',
+          timestamp: msg.timestamp
+        }
+        
+        return [userMessage, assistantMessage]
+      }).flat()
+      
+      // Sort messages chronologically for proper display order
+      transformedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      
+      setMessages(transformedMessages)
+      setCurrentConversationId(conversationId)
+    } catch (error) {
+      setError('Failed to load conversation')
+    } finally {
+      setLoadingConversation(false)
+    }
   }
 
   return (
@@ -46,27 +182,60 @@ export default function Chat() {
           <span className="chat-title">Chat</span>
         </div>
         <div className="chat-header-right">
-          <Link to="/login" className="chat-header-link">Login</Link>
-          <Link to="/signup" className="chat-header-link">Sign up</Link>
+          <span className="user-info">Welcome, {user?.name || user?.email}</span>
+          <button onClick={logout} className="chat-header-link">Logout</button>
         </div>
       </header>
 
       <main className="chat-main">
         <aside className="chat-sidebar">
-          <button className="new-chat-btn" onClick={() => setMessages([{ id: 'm1', role: 'assistant', content: 'New conversation started. How can I help?' }])}>+ New chat</button>
+          <button className="new-chat-btn" onClick={startNewChat}>+ New chat</button>
           <div className="sidebar-sections">
             <div className="sidebar-section-title">Conversations</div>
-            <div className="sidebar-empty">(history coming soon)</div>
+            {conversations.length > 0 ? (
+              <div className="conversation-list">
+                {conversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    className={`conversation-item ${currentConversationId === conv.id ? 'active' : ''}`}
+                    onClick={() => loadConversation(conv.id)}
+                    disabled={loadingConversation}
+                  >
+                    <div className="conversation-title">
+                      {conv.title || `Conversation ${conv.id.slice(0, 8)}`}
+                    </div>
+                    {conv.last_message_at && (
+                      <div className="conversation-time">
+                        {new Date(conv.last_message_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="sidebar-empty">No conversations yet</div>
+            )}
           </div>
         </aside>
 
         <section className="chat-content">
+          {error && <div className="error-message">{error}</div>}
+          {loadingConversation && (
+            <div className="loading-conversation">
+              <div className="loading-spinner"></div>
+              Loading conversation...
+            </div>
+          )}
           <div ref={listRef} className="message-list">
             {messages.map((m) => (
               <div key={m.id} className={`message-row ${m.role}`}>
                 <div className="avatar" aria-hidden>{m.role === 'assistant' ? 'A' : 'U'}</div>
                 <div className="bubble">
-                  {m.content}
+                  {m.role === 'assistant' ? (
+                    <MessageContent message={m} />
+                  ) : (
+                    <div className="message-text">{m.content}</div>
+                  )}
                 </div>
               </div>
             ))}
