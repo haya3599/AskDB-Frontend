@@ -431,7 +431,10 @@ export default function Chat() {
         </div>
         <div className="chat-header-right">
           <span className="user-info">Welcome, {user?.name || user?.email}</span>
-          <button onClick={logout} className="chat-header-link">Logout</button>
+          <button onClick={logout} className="chat-header-link logout-btn">
+            <span className="logout-icon">🚪</span>
+            <span className="logout-text">Logout</span>
+          </button>
         </div>
       </header>
 
@@ -535,12 +538,6 @@ export default function Chat() {
           )}
 
           <div className="composer-container">
-            <FileUpload
-              onFileSelect={handleFileSelect}
-              disabled={isSending}
-              maxSize={10 * 1024 * 1024} // 10MB
-            />
-            
             <form className="composer" onSubmit={handleSubmit}>
               <input
                 className="composer-input"
@@ -549,9 +546,16 @@ export default function Chat() {
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isSending}
               />
-              <button className="composer-send" type="submit" disabled={isSending || !input.trim()}>
-                Send
-              </button>
+              <div className="composer-actions">
+                <FileUpload
+                  onFileSelect={handleFileSelect}
+                  disabled={isSending}
+                  maxSize={10 * 1024 * 1024} // 10MB
+                />
+                <button className="composer-send" type="submit" disabled={isSending || !input.trim()}>
+                  Send
+                </button>
+              </div>
             </form>
           </div>
         </section>

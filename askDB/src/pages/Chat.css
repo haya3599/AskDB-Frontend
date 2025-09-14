@@ -7,6 +7,36 @@
 .chat-header-link { color: #93c5fd; text-decoration: none; font-weight: 600; }
 .chat-header-link:hover { text-decoration: underline; }
 
+.logout-btn {
+  background: transparent;
+  border: 1px solid #1f2430;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #93c5fd;
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  background: #1f2430;
+  border-color: #263041;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.logout-icon {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.logout-text {
+  font-size: 14px;
+}
+
 .chat-main { display: flex; min-height: 0; flex: 1; }
 .chat-sidebar { width: 260px; border-right: 1px solid #1f2430; background: #0f131b; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .new-chat-btn { background: #1e293b; color: #ffffff; border: 1px solid #263041; border-radius: 10px; padding: 10px 12px; cursor: pointer; }
@@ -30,7 +60,8 @@
 .composer { padding: 12px; display: flex; gap: 8px; }
 .composer-input { flex: 1; background: #0b0e14; color: #ffffff; border: 1px solid #1f2430; border-radius: 12px; padding: 12px 14px; outline: none; }
 .composer-input:focus { border-color: #3759d6; box-shadow: 0 0 0 3px rgba(55,89,214,0.2); }
-.composer-send { background: #3759d6; color: white; border: none; border-radius: 12px; padding: 0 16px; font-weight: 700; cursor: pointer; }
+.composer-actions { display: flex; align-items: center; gap: 8px; }
+.composer-send { background: #3759d6; color: white; border: none; border-radius: 12px; padding: 0 16px; font-weight: 700; cursor: pointer; height: 40px; }
 .composer-send:disabled { opacity: 0.5; cursor: not-allowed; }
 .composer-send:hover:not(:disabled) { background: #2e49b4; }
 

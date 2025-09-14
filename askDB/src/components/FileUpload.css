@@ -1,17 +1,124 @@
 /* File Upload Component Styles */
 .file-upload-container {
-  margin: 10px 0;
+  margin: 0;
+  position: relative;
 }
 
+/* Compact file upload icon */
+.file-upload-icon {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #3759d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.file-upload-icon:hover:not(.disabled) {
+  background-color: #2e49b4;
+}
+
+.file-upload-icon.drag-over {
+  background-color: #2e49b4;
+  transform: scale(1.05);
+}
+
+.file-upload-icon.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #3759d6;
+}
+
+.file-upload-icon.has-file {
+  background-color: #10b981;
+}
+
+.upload-icon-small {
+  font-size: 1.2rem;
+  color: white;
+  opacity: 0.9;
+}
+
+.file-icon-selected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.file-icon-small {
+  font-size: 1.2rem;
+  color: white;
+}
+
+.file-remove-btn-small {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.6rem;
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.file-remove-btn-small:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.file-remove-btn-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-progress-small {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-small {
+  height: 100%;
+  background-color: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+.progress-fill-small {
+  height: 100%;
+  background-color: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+/* Legacy styles for backward compatibility */
 .file-upload-area {
   border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 6px;
+  padding: 12px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
   background-color: #f9fafb;
-  min-height: 120px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -38,21 +145,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .upload-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
   opacity: 0.6;
 }
 
 .upload-text {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: #374151;
 }
 
 .upload-subtext {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
 }
 
@@ -151,19 +258,19 @@
 /* Responsive design */
 @media (max-width: 640px) {
   .file-upload-area {
-    padding: 15px;
-    min-height: 100px;
+    padding: 10px;
+    min-height: 70px;
   }
   
   .upload-icon {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
   
   .upload-text {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
   
   .upload-subtext {
-    font-size: 0.75rem;
+    font-size: 0.625rem;
   }
 }

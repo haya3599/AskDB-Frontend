@@ -124,11 +124,12 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
   return (
     <div className="file-upload-container">
       <div
-        className={`file-upload-area ${isDragOver ? 'drag-over' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`file-upload-icon ${isDragOver ? 'drag-over' : ''} ${disabled ? 'disabled' : ''} ${selectedFile ? 'has-file' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={triggerFileInput}
+        title={selectedFile ? `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)` : 'Upload file (csv,xlsx,xls,json,txt,sql)'}
       >
         <input
           ref={fileInputRef}
@@ -140,49 +141,33 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
         />
         
         {selectedFile ? (
-          <div className="file-selected">
-            <div className="file-info">
-              <span className="file-icon">📄</span>
-              <div className="file-details">
-                <div className="file-name">{selectedFile.name}</div>
-                <div className="file-size">
-                  {(selectedFile.size / 1024).toFixed(1)} KB
-                </div>
-              </div>
-            </div>
+          <div className="file-icon-selected">
+            <span className="file-icon-small">📄</span>
             <button
-              className="file-remove-btn"
+              className="file-remove-btn-small"
               onClick={(e) => {
                 e.stopPropagation();
                 clearFile();
               }}
               disabled={disabled}
+              title="Remove file"
             >
               ✕
             </button>
           </div>
         ) : (
-          <div className="file-upload-prompt">
-            <div className="upload-icon">📁</div>
-            <div className="upload-text">
-              <strong>Click to upload</strong> or drag and drop
-            </div>
-            <div className="upload-subtext">
-              CSV, Excel, JSON, SQL files (max {Math.round(maxSize / (1024 * 1024))}MB)
-            </div>
-          </div>
+          <span className="upload-icon-small">📁</span>
         )}
       </div>
 
       {uploadProgress > 0 && uploadProgress < 100 && (
-        <div className="upload-progress">
-          <div className="progress-bar">
+        <div className="upload-progress-small">
+          <div className="progress-bar-small">
             <div 
-              className="progress-fill" 
+              className="progress-fill-small" 
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
-          <span className="progress-text">{uploadProgress}%</span>
         </div>
       )}
     </div>
