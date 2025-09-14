@@ -4,7 +4,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { chatAPI } from '../services/api'
 import MessageContent from '../components/MessageContent'
+import FileUpload from '../components/FileUpload'
+import QuerySearch from '../components/QuerySearch'
+import ConversationExport from '../components/ConversationExport'
 import './Chat.css'
+import '../components/FileUpload.css'
+import '../components/QuerySearch.css'
+import '../components/ConversationExport.css'
 
 /**
  * Chat Component
@@ -25,6 +31,10 @@ export default function Chat() {
   const [loadingConversation, setLoadingConversation] = useState(false)
   const [deletingConversation, setDeletingConversation] = useState(null)
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [showSearchResults, setShowSearchResults] = useState(false)
   
   // Refs and hooks
   const listRef = useRef(null)
@@ -97,9 +107,12 @@ export default function Chat() {
     setIsSending(true)
 
     try {
-      // Send message to backend with current conversation context
-      const response = await chatAPI.sendMessage(trimmed, null, currentConversationId)
+      // Send message to backend with current conversation context and file
+      const response = await chatAPI.sendMessage(trimmed, selectedFile, currentConversationId)
       const { message, conversation_id, data } = response.data
+      
+      // Clear selected file after sending
+      setSelectedFile(null)
       
       // Create structured assistant message with SQL and results
       const assistantMsg = {
@@ -247,6 +260,168 @@ export default function Chat() {
     }
   }
 
+  /**
+   * Handle file selection for upload
+   * 
+   * @param {File|null} file - Selected file or null to clear
+   */
+  const handleFileSelect = (file) => {
+    setSelectedFile(file)
+  }
+
+  /**
+   * Search through conversation history
+   * 
+   * @param {string} term - Search term
+   * @returns {Promise<Array>} Search results
+   */
+  const handleSearch = async (term) => {
+    try {
+      // For now, perform local search through conversations
+      // In a real app, this would call a search API
+      const results = conversations.filter(conv => 
+        conv.title?.toLowerCase().includes(term.toLowerCase()) ||
+        conv.id?.toLowerCase().includes(term.toLowerCase())
+      ).map(conv => ({
+        id: conv.id,
+        title: conv.title || `Conversation ${conv.id.slice(0, 8)}`,
+        timestamp: conv.createdAt || conv.timestamp,
+        preview: `Conversation with ${conv.messageCount || 0} messages`
+      }))
+      
+      return results
+    } catch (error) {
+      console.error('Search error:', error)
+      return []
+    }
+  }
+
+  /**
+   * Clear search results
+   */
+  const handleSearchClear = () => {
+    setSearchResults([])
+    setShowSearchResults(false)
+  }
+
+  /**
+   * Export conversation data
+   * 
+   * @param {Object} conversation - Conversation to export
+   * @param {string} format - Export format (json, csv, txt)
+   */
+  const handleExport = async (conversation, format) => {
+    try {
+      // Get full conversation data including messages
+      const response = await chatAPI.getConversationHistory(conversation.id)
+      const messages = response.data.messages || []
+      
+      const exportData = {
+        id: conversation.id,
+        title: conversation.title || `Conversation ${conversation.id.slice(0, 8)}`,
+        createdAt: conversation.createdAt || conversation.timestamp,
+        messages: messages.map(msg => ({
+          id: msg.id,
+          role: 'user',
+          content: msg.prompt || '',
+          timestamp: msg.timestamp
+        })).concat(messages.map(msg => ({
+          id: `${msg.id}-assistant`,
+          role: 'assistant',
+          content: msg.ai_response || '',
+          sql: msg.sql_query || null,
+          results: msg.results || null,
+          timestamp: msg.timestamp
+        })))
+      }
+
+      // Format data based on export format
+      let content, filename, mimeType
+      
+      switch (format) {
+        case 'json':
+          content = JSON.stringify(exportData, null, 2)
+          filename = `conversation-${conversation.id.slice(0, 8)}.json`
+          mimeType = 'application/json'
+          break
+        case 'csv':
+          content = convertToCSV(exportData)
+          filename = `conversation-${conversation.id.slice(0, 8)}.csv`
+          mimeType = 'text/csv'
+          break
+        case 'txt':
+          content = convertToText(exportData)
+          filename = `conversation-${conversation.id.slice(0, 8)}.txt`
+          mimeType = 'text/plain'
+          break
+        default:
+          throw new Error('Unsupported export format')
+      }
+
+      // Download file
+      const blob = new Blob([content], { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      showSuccess(`Conversation exported as ${format.toUpperCase()}`)
+    } catch (error) {
+      console.error('Export error:', error)
+      showError('Failed to export conversation')
+    }
+  }
+
+  /**
+   * Convert conversation data to CSV format
+   */
+  const convertToCSV = (data) => {
+    const headers = ['Message ID', 'Role', 'Content', 'SQL Query', 'Timestamp']
+    const rows = data.messages.map(msg => [
+      msg.id || '',
+      msg.role || '',
+      `"${(msg.content || '').replace(/"/g, '""')}"`,
+      `"${(msg.sql || '').replace(/"/g, '""')}"`,
+      msg.timestamp || ''
+    ])
+
+    return [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n')
+  }
+
+  /**
+   * Convert conversation data to plain text format
+   */
+  const convertToText = (data) => {
+    let text = `Conversation: ${data.title}\n`
+    text += `ID: ${data.id}\n`
+    text += `Created: ${data.createdAt}\n\n`
+    text += 'Messages:\n'
+    text += '='.repeat(50) + '\n\n'
+
+    data.messages.forEach((msg, index) => {
+      text += `${index + 1}. ${msg.role?.toUpperCase()}\n`
+      text += `   ${msg.content || ''}\n`
+      
+      if (msg.sql) {
+        text += `   SQL: ${msg.sql}\n`
+      }
+      
+      if (msg.timestamp) {
+        text += `   Time: ${msg.timestamp}\n`
+      }
+      
+      text += '\n'
+    })
+
+    return text
+  }
+
   return (
     <div className="chat-layout">
       <header className="chat-header">
@@ -263,6 +438,16 @@ export default function Chat() {
       <main className="chat-main">
         <aside className="chat-sidebar">
           <button className="new-chat-btn" onClick={startNewChat}>+ New chat</button>
+          
+          <div className="sidebar-search">
+            <QuerySearch
+              conversations={conversations}
+              onSearch={handleSearch}
+              onClear={handleSearchClear}
+              placeholder="Search conversations..."
+            />
+          </div>
+          
           <div className="sidebar-sections">
             <div className="sidebar-section-title">Conversations</div>
             {conversations.length > 0 ? (
@@ -290,17 +475,24 @@ export default function Chat() {
                         </div>
                       </div>
                     </button>
-                    <button
-                      className="conversation-delete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteConversation(conv.id);
-                      }}
-                      title="Delete conversation"
-                      disabled={loadingConversation || deletingConversation === conv.id}
-                    >
-                      {deletingConversation === conv.id ? '⏳' : '🗑️'}
-                    </button>
+                    <div className="conversation-actions">
+                      <ConversationExport
+                        conversation={conv}
+                        onExport={handleExport}
+                        disabled={loadingConversation}
+                      />
+                      <button
+                        className="conversation-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteConversation(conv.id);
+                        }}
+                        title="Delete conversation"
+                        disabled={loadingConversation || deletingConversation === conv.id}
+                      >
+                        {deletingConversation === conv.id ? '⏳' : '🗑️'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -342,18 +534,26 @@ export default function Chat() {
             </button>
           )}
 
-          <form className="composer" onSubmit={handleSubmit}>
-            <input
-              className="composer-input"
-              placeholder="Message askDB..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+          <div className="composer-container">
+            <FileUpload
+              onFileSelect={handleFileSelect}
               disabled={isSending}
+              maxSize={10 * 1024 * 1024} // 10MB
             />
-            <button className="composer-send" type="submit" disabled={isSending || !input.trim()}>
-              Send
-            </button>
-          </form>
+            
+            <form className="composer" onSubmit={handleSubmit}>
+              <input
+                className="composer-input"
+                placeholder="Message askDB..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={isSending}
+              />
+              <button className="composer-send" type="submit" disabled={isSending || !input.trim()}>
+                Send
+              </button>
+            </form>
+          </div>
         </section>
       </main>
     </div>
