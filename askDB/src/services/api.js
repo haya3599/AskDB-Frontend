@@ -107,9 +107,8 @@ export const chatAPI = {
     if (file) {
       formData.append('file', file);
     }
-    if (conversationId) {
-      formData.append('conversation_id', conversationId);
-    }
+    // Always append conversation_id, even if null (to distinguish new vs existing conversations)
+    formData.append('conversation_id', conversationId || '');
     return api.post('/chat', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
