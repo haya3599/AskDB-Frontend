@@ -7,10 +7,12 @@ import MessageContent from '../components/MessageContent'
 import FileUpload from '../components/FileUpload'
 import QuerySearch from '../components/QuerySearch'
 import ConversationExport from '../components/ConversationExport'
+import SQLConfirmationModal from '../components/SQLConfirmationModal'
 import './Chat.css'
 import '../components/FileUpload.css'
 import '../components/QuerySearch.css'
 import '../components/ConversationExport.css'
+import '../components/SQLConfirmationModal.css'
 
 /**
  * Chat Component
@@ -35,6 +37,12 @@ export default function Chat() {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [showSearchResults, setShowSearchResults] = useState(false)
+  
+  // SQL Confirmation Modal state
+  const [showSQLConfirmation, setShowSQLConfirmation] = useState(false)
+  const [pendingSQL, setPendingSQL] = useState('')
+  const [pendingMessageId, setPendingMessageId] = useState(null)
+  const [isConfirmingSQL, setIsConfirmingSQL] = useState(false)
   
   // Refs and hooks
   const listRef = useRef(null)
@@ -109,21 +117,31 @@ export default function Chat() {
     try {
       // Send message to backend with current conversation context and file
       const response = await chatAPI.sendMessage(trimmed, selectedFile, currentConversationId)
-      const { message, conversation_id, data } = response.data
+      const { message, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
       
       // Clear selected file after sending
       setSelectedFile(null)
       
-      // Create structured assistant message with SQL and results
-      const assistantMsg = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: message,
-        sql: data?.sql || null,
-        results: data?.results || null,
-        actionType: data?.action_type || 'chat'
+      // Check if SQL confirmation is required
+      if (requiresConfirmation && messageId && sql) {
+        // Show SQL confirmation modal
+        setPendingSQL(sql)
+        setPendingMessageId(messageId)
+        setShowSQLConfirmation(true)
+        
+        // Don't add any message to chat yet - wait for user confirmation
+      } else {
+        // Normal response - create structured assistant message with SQL and results
+        const assistantMsg = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: message,
+          sql: data?.sql || null,
+          results: data?.results || null,
+          actionType: data?.action_type || 'chat'
+        }
+        setMessages((prev) => [...prev, assistantMsg])
       }
-      setMessages((prev) => [...prev, assistantMsg])
       
       // Update conversation ID for new or changed conversations
       if (conversation_id && conversation_id !== currentConversationId) {
@@ -422,6 +440,56 @@ export default function Chat() {
     return text
   }
 
+  /**
+   * Handle SQL confirmation - execute the confirmed SQL
+   */
+  const handleSQLConfirmation = async (sql) => {
+    if (!pendingMessageId) return
+
+    setIsConfirmingSQL(true)
+    
+    try {
+      const response = await chatAPI.confirmSQL(pendingMessageId, sql)
+      const { message, data } = response.data
+      
+      // Add the execution result message to chat
+      const resultMsg = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: message || 'SQL executed successfully',
+        sql: sql,
+        results: data?.results || null,
+        actionType: 'sql_executed'
+      }
+      setMessages((prev) => [...prev, resultMsg])
+      
+      showSuccess('SQL executed successfully')
+      
+      // Close the modal
+      setShowSQLConfirmation(false)
+      setPendingSQL('')
+      setPendingMessageId(null)
+      
+      // Refresh conversation list
+      loadConversations()
+      
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to execute SQL')
+    } finally {
+      setIsConfirmingSQL(false)
+    }
+  }
+
+  /**
+   * Handle SQL confirmation cancellation
+   */
+  const handleSQLCancellation = () => {
+    // Close the modal without adding any message to chat
+    setShowSQLConfirmation(false)
+    setPendingSQL('')
+    setPendingMessageId(null)
+  }
+
   return (
     <div className="chat-layout">
       <header className="chat-header">
@@ -560,6 +628,15 @@ export default function Chat() {
           </div>
         </section>
       </main>
+
+      {/* SQL Confirmation Modal */}
+      <SQLConfirmationModal
+        isOpen={showSQLConfirmation}
+        sql={pendingSQL}
+        onRun={handleSQLConfirmation}
+        onCancel={handleSQLCancellation}
+        isLoading={isConfirmingSQL}
+      />
     </div>
   )
 }

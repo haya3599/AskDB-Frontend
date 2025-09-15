@@ -142,6 +142,16 @@ export const chatAPI = {
    */
   deleteConversation: (conversationId) => 
     api.delete(`/chat/conversations/${conversationId}`),
+  
+  /**
+   * Confirm and execute a pending SQL operation
+   * 
+   * @param {string} messageId - ID of the pending operation
+   * @param {string} sql - SQL query to execute (may be modified)
+   * @returns {Promise} Axios response with execution results
+   */
+  confirmSQL: (messageId, sql) => 
+    api.post('/chat/confirm-sql', { messageId, sql }),
 };
 
 /**
