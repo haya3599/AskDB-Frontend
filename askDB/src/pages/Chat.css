@@ -38,13 +38,18 @@
 }
 
 .chat-main { display: flex; min-height: 0; flex: 1; }
-.chat-sidebar { width: 260px; border-right: 1px solid #1f2430; background: #0f131b; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.chat-sidebar { width: 260px; border-right: 1px solid #1f2430; background: #0f131b; padding: 12px; display: flex; flex-direction: column; gap: 12px; height: 91vh; overflow: hidden; }
 .new-chat-btn { background: #1e293b; color: #ffffff; border: 1px solid #263041; border-radius: 10px; padding: 10px 12px; cursor: pointer; }
 .new-chat-btn:hover { background: #253346; }
 .sidebar-search { margin-bottom: 12px; }
-.sidebar-sections { color: #ffffff; font-size: 14px; }
+.sidebar-sections { color: #ffffff; font-size: 14px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .sidebar-section-title { font-weight: 700; margin: 8px 0; }
 .sidebar-empty { opacity: 0.7; }
+.conversation-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+.conversation-list::-webkit-scrollbar { width: 6px; }
+.conversation-list::-webkit-scrollbar-track { background: #1f2430; border-radius: 3px; }
+.conversation-list::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
+.conversation-list::-webkit-scrollbar-thumb:hover { background: #718096; }
 
 .chat-content { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .message-list { flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
