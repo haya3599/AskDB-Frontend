@@ -32,6 +32,12 @@ const SQLConfirmationModal = ({
     setError(null);
   };
 
+  const handleRevert = () => {
+    setIsEditing(false);
+    setEditedSql(sql); // Reset to original SQL
+    setError(null);
+  };
+
   const handleRun = () => {
     try {
       // Basic SQL validation - check if it's not empty
@@ -93,14 +99,6 @@ const SQLConfirmationModal = ({
         </div>
 
         <div className="sql-confirmation-actions">
-          <button
-            className="sql-btn sql-btn-secondary"
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-          
           {!isEditing ? (
             <button
               className="sql-btn sql-btn-primary"
@@ -109,7 +107,15 @@ const SQLConfirmationModal = ({
             >
               Edit
             </button>
-          ) : null}
+          ) : (
+            <button
+              className="sql-btn sql-btn-secondary"
+              onClick={handleRevert}
+              disabled={isLoading}
+            >
+              Revert
+            </button>
+          )}
           
           <button
             className="sql-btn sql-btn-success"

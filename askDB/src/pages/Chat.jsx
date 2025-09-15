@@ -585,7 +585,7 @@ export default function Chat() {
           <div ref={listRef} className="message-list">
             {messages.map((m) => (
               <div key={m.id} className={`message-row ${m.role}`}>
-                <div className="avatar" aria-hidden>{m.role === 'assistant' ? 'A' : 'U'}</div>
+                <div className="avatar" aria-hidden>{m.role === 'assistant' ? '🤖' : 'U'}</div>
                 <div className="bubble">
                   {m.role === 'assistant' ? (
                     <MessageContent message={m} />

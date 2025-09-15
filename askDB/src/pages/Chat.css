@@ -124,19 +124,20 @@
 }
 .sql-code {
   padding: 16px;
-  background: #0a0a0a;
+  background: #000000 !important;
 }
 .sql-code pre {
   margin: 0;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   line-height: 1.5;
-  color: #ffffff;
+  color: #ffffff !important;
   overflow-x: auto;
+  background: #000000 !important;
 }
 .sql-code code {
-  color: #60a5fa;
-  background: transparent;
+  color: #60a5fa !important;
+  background: #000000 !important;
 }
 
 /* Results Section - Enhanced Dark Theme */
@@ -171,6 +172,7 @@
   padding: 0;
   overflow-x: auto;
   background: #0f1419;
+  position: relative;
 }
 .results-table {
   width: 100%;
@@ -248,6 +250,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .results-info::before {
   content: "ℹ️";
