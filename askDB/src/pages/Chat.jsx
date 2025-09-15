@@ -285,8 +285,8 @@ export default function Chat() {
       ).map(conv => ({
         id: conv.id,
         title: conv.title || `Conversation ${conv.id.slice(0, 8)}`,
-        timestamp: conv.createdAt || conv.timestamp,
-        preview: `Conversation with ${conv.messageCount || 0} messages`
+        timestamp: conv.created_at || conv.last_message_at,
+        preview: `Conversation with ${conv.message_count || 0} messages`
       }))
       
       return results

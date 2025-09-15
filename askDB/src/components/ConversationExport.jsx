@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * ConversationExport Component
@@ -14,6 +14,26 @@ const ConversationExport = ({
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState('json');
   const [showOptions, setShowOptions] = useState(false);
+  const popupRef = useRef(null);
+
+  /**
+   * Handle clicks outside the popup to close it
+   */
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    };
+
+    if (showOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showOptions]);
 
   /**
    * Export conversation data
@@ -161,7 +181,7 @@ const ConversationExport = ({
   }
 
   return (
-    <div className="conversation-export-container">
+    <div className="conversation-export-container" ref={popupRef}>
       <div className="export-button-container">
         <button
           className={`export-btn ${isExporting ? 'exporting' : ''}`}
