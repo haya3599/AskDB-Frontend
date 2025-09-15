@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
 function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { register } = useAuth()
@@ -91,15 +94,26 @@ function Signup() {
           </label>
           <label>
             Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password (min. 8 chars, must include A-Z, a-z, 0-9)"
-              required
-              disabled={loading}
-              minLength={8}
-            />
+            <div className="password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Create a password (min. 8 chars, must include A-Z, a-z, 0-9)"
+                required
+                disabled={loading}
+                minLength={8}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+              </button>
+            </div>
           </label>
           <button type="submit" disabled={loading}>
             {loading ? (

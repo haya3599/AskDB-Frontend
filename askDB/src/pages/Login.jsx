@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
@@ -50,14 +53,25 @@ function Login() {
         </label>
         <label>
           Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Your password"
-            required
-            disabled={loading}
-          />
+          <div className="password-field">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              required
+              disabled={loading}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={loading}
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </button>
+          </div>
         </label>
         <button type="submit" disabled={loading}>
           {loading ? (
