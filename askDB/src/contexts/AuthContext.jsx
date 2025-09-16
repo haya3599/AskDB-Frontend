@@ -13,32 +13,33 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing token on mount
+  // Check for existing session on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    checkAuthStatus();
   }, []);
 
-  const login = async (email, password) => {
+  const checkAuthStatus = async () => {
     try {
-      const response = await authAPI.login(email, password);
-      const { token: newToken, user: userData } = response.data;
+      const response = await authAPI.getMe();
+      if (response.data?.user) {
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      // User is not authenticated or session expired
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (email, password, rememberMe = false) => {
+    try {
+      const response = await authAPI.login(email, password, rememberMe);
+      const { user: userData } = response.data;
       
-      // Store in localStorage
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Update state
-      setToken(newToken);
+      // Update state (cookie is automatically set by the server)
       setUser(userData);
       
       return { 
@@ -76,14 +77,9 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { token: newToken, user: newUser } = response.data;
+      const { user: newUser } = response.data;
       
-      // Store in localStorage
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      
-      // Update state
-      setToken(newToken);
+      // Update state (cookie is automatically set by the server)
       setUser(newUser);
       
       return { 
@@ -131,28 +127,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    
-    // Clear state
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Call logout endpoint to clear server-side session
+      await authAPI.logout();
+    } catch (error) {
+      // Even if logout fails, clear local state
+      console.error('Logout error:', error);
+    } finally {
+      // Clear state
+      setUser(null);
+    }
   };
 
   const isAuthenticated = () => {
-    return !!token && !!user;
+    return !!user;
   };
 
   const value = {
     user,
-    token,
     loading,
     login,
     register,
     logout,
     isAuthenticated,
+    checkAuthStatus,
   };
 
   return (

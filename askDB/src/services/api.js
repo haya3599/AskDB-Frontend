@@ -14,15 +14,13 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include cookies in requests
 });
 
-// Request interceptor - automatically attach JWT token to requests
+// Request interceptor - cookies are automatically included with withCredentials: true
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // No need to manually attach tokens - cookies are handled automatically
     return config;
   },
   (error) => {
@@ -35,11 +33,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear authentication data on unauthorized access
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Redirect to login page (avoid redirect loops)
+      // Redirect to login page on unauthorized access (avoid redirect loops)
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
@@ -60,10 +54,11 @@ export const authAPI = {
    * 
    * @param {string} email - User email address
    * @param {string} password - User password
-   * @returns {Promise} Axios response with JWT token
+   * @param {boolean} rememberMe - Whether to remember the user for 30 days
+   * @returns {Promise} Axios response with user data
    */
-  login: (email, password) => 
-    api.post('/users/login', { email, password }),
+  login: (email, password, rememberMe = false) => 
+    api.post('/users/login', { email, password, rememberMe }),
   
   /**
    * Register a new user account
@@ -84,6 +79,14 @@ export const authAPI = {
   
   updateMe: (userData) => 
     api.put('/users/me', userData),
+  
+  /**
+   * Logout user and clear session
+   * 
+   * @returns {Promise} Axios response with logout confirmation
+   */
+  logout: () => 
+    api.post('/users/logout'),
 };
 
 /**

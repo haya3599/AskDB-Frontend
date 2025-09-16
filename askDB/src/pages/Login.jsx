@@ -8,6 +8,7 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -19,7 +20,7 @@ function Login() {
     setLoading(true)
 
     try {
-      const result = await login(email, password)
+      const result = await login(email, password, rememberMe)
       if (result.success) {
         showSuccess(result.message)
         // Small delay to show success message before redirect
@@ -72,6 +73,15 @@ function Login() {
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </button>
           </div>
+        </label>
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            disabled={loading}
+          />
+          <span>Remember me for 30 days</span>
         </label>
         <button type="submit" disabled={loading}>
           {loading ? (
