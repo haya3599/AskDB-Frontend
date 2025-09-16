@@ -116,7 +116,6 @@ export default function Chat() {
 
     try {
       // Send message to backend with current conversation context and file
-      console.log('🔍 Frontend sending message:', { message: trimmed, conversationId: currentConversationId, hasFile: !!selectedFile });
       const response = await chatAPI.sendMessage(trimmed, selectedFile, currentConversationId)
       const { message, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
       
@@ -168,7 +167,6 @@ export default function Chat() {
    * Start a new conversation by resetting the chat state
    */
   const startNewChat = () => {
-    console.log('🔍 Frontend starting new chat - resetting conversation ID to null');
     setMessages([{ id: 'm1', role: 'assistant', content: 'New conversation started. How can I help?' }])
     setCurrentConversationId(null)
     showInfo('New conversation started')
