@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
-import { chatAPI } from '../services/api'
+import { chatAPI, databasesAPI } from '../services/api'
 import MessageContent from '../components/MessageContent'
 import FileUpload from '../components/FileUpload'
 import QuerySearch from '../components/QuerySearch'
@@ -37,6 +37,8 @@ export default function Chat() {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [showSearchResults, setShowSearchResults] = useState(false)
+  const [databases, setDatabases] = useState([])
+  const [selectedDatabaseId, setSelectedDatabaseId] = useState('')
   
   // SQL Confirmation Modal state
   const [showSQLConfirmation, setShowSQLConfirmation] = useState(false)
@@ -61,6 +63,7 @@ export default function Chat() {
   useEffect(() => {
     if (isAuthenticated()) {
       loadConversations()
+      loadDatabases()
     }
   }, [isAuthenticated])
 
@@ -99,6 +102,18 @@ export default function Chat() {
   }
 
   /**
+   * Load user's databases for dropdown selection
+   */
+  const loadDatabases = async () => {
+    try {
+      const response = await databasesAPI.getAll()
+      setDatabases(response.data?.databases || response.data || [])
+    } catch (error) {
+      console.error('Failed to load databases:', error)
+    }
+  }
+
+  /**
    * Handle message submission and AI processing
    * 
    * @param {Event} e - Form submit event
@@ -107,6 +122,10 @@ export default function Chat() {
     e.preventDefault()
     const trimmed = input.trim()
     if (!trimmed || isSending) return
+    if (!selectedDatabaseId) {
+      showError('Please choose a database before sending a message.')
+      return
+    }
     
     // Add user message to chat immediately
     const userMsg = { id: crypto.randomUUID(), role: 'user', content: trimmed }
@@ -116,7 +135,7 @@ export default function Chat() {
 
     try {
       // Send message to backend with current conversation context and file
-      const response = await chatAPI.sendMessage(trimmed, selectedFile, currentConversationId)
+      const response = await chatAPI.sendMessage(trimmed, selectedFile, currentConversationId, selectedDatabaseId || null)
       const { message, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
       
       // Clear selected file after sending
@@ -607,6 +626,44 @@ export default function Chat() {
 
           <div className="composer-container">
             <form className="composer" onSubmit={handleSubmit}>
+            <select
+              className="db-selector"
+              value={selectedDatabaseId}
+              onChange={(e) => setSelectedDatabaseId(e.target.value)}
+              disabled={isSending}
+              title="Select a database (optional)"
+              required
+            >
+              <option value="">Choose database</option>
+              {databases.map((db) => (
+                <option key={db.id} value={db.id}>{db.name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="composer-export"
+              onClick={async () => {
+                if (!selectedDatabaseId) return;
+                try {
+                  const res = await databasesAPI.exportSQL(selectedDatabaseId)
+                  const blob = new Blob([res.data], { type: 'application/sql' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `database-${selectedDatabaseId}.sql`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(url)
+                } catch (err) {
+                  showError('Failed to export database SQL')
+                }
+              }}
+              disabled={isSending || !selectedDatabaseId}
+              title="Export selected database as .sql"
+            >
+              Export
+            </button>
               <input
                 className="composer-input"
                 placeholder="Message askDB..."
@@ -620,7 +677,7 @@ export default function Chat() {
                   disabled={isSending}
                   maxSize={10 * 1024 * 1024} // 10MB
                 />
-                <button className="composer-send" type="submit" disabled={isSending || !input.trim()}>
+                <button className="composer-send" type="submit" disabled={isSending || !input.trim() || !selectedDatabaseId}>
                   Send
                 </button>
               </div>

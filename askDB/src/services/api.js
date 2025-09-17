@@ -104,7 +104,7 @@ export const chatAPI = {
    * @param {string|null} conversationId - Optional conversation ID for context
    * @returns {Promise} Axios response with AI response data
    */
-  sendMessage: (message, file = null, conversationId = null) => {
+  sendMessage: (message, file = null, conversationId = null, databaseId = null) => {
     const formData = new FormData();
     formData.append('message', message);
     if (file) {
@@ -112,6 +112,9 @@ export const chatAPI = {
     }
     // Always append conversation_id, even if null (to distinguish new vs existing conversations)
     formData.append('conversation_id', conversationId || '');
+    if (databaseId) {
+      formData.append('database_id', databaseId);
+    }
     return api.post('/chat', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -154,6 +157,28 @@ export const chatAPI = {
    */
   confirmSQL: (messageId, sql) => 
     api.post('/chat/confirm-sql', { messageId, sql }),
+};
+
+/**
+ * Databases API Service
+ *
+ * Fetches the current user's databases for selection.
+ */
+export const databasesAPI = {
+  /**
+   * Get user's databases
+   * @returns {Promise} Axios response with databases array
+   */
+  getAll: () => api.get('/databases'),
+  /**
+   * Get schema for a specific database
+   * @param {string} id
+   */
+  getSchema: (id) => api.get(`/databases/${id}/schema`),
+  /**
+   * Export database as SQL dump (.sql)
+   */
+  exportSQL: (id) => api.get(`/databases/${id}/export?format=sql`, { responseType: 'blob' }),
 };
 
 /**
