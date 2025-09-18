@@ -30,12 +30,24 @@ const DatabaseExport = ({
       }
     };
 
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        setShowModal(false);
+      }
+    };
+
     if (showModal) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+      // Restore body scroll when modal is closed
+      document.body.style.overflow = 'unset';
     };
   }, [showModal]);
 
@@ -119,7 +131,14 @@ const DatabaseExport = ({
       </button>
 
       {showModal && (
-        <div className="database-export-modal-overlay">
+        <div 
+          className="database-export-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowModal(false);
+            }
+          }}
+        >
           <div className="database-export-modal" ref={modalRef}>
             <div className="export-modal-header">
               <h3>Export Database</h3>
