@@ -62,10 +62,8 @@ const DatabaseExport = ({
     try {
       const response = await databasesAPI.export(databaseId, format);
       
-      // Create download
-      const mimeType = getMimeType(format);
-      const blob = new Blob([response.data], { type: mimeType });
-      const url = URL.createObjectURL(blob);
+      // Create download - response.data is already a blob when responseType: 'blob' is used
+      const url = URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
       link.download = `database-${databaseName || databaseId}.${format}`;
@@ -84,17 +82,6 @@ const DatabaseExport = ({
     }
   };
 
-  /**
-   * Get MIME type for format
-   */
-  const getMimeType = (format) => {
-    switch (format) {
-      case 'sql': return 'application/sql';
-      case 'json': return 'application/json';
-      case 'db': return 'application/octet-stream';
-      default: return 'application/sql';
-    }
-  };
 
   /**
    * Handle export button click
@@ -112,6 +99,7 @@ const DatabaseExport = ({
   return (
     <>
       <button
+        type="button"
         className={`database-export-btn ${isExporting ? 'exporting' : ''}`}
         onClick={handleExportClick}
         disabled={disabled || isExporting || !databaseId}

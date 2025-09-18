@@ -83,6 +83,7 @@ const ConversationExport = ({
   return (
     <>
       <button
+        type="button"
         className={`conversation-export-btn ${isExporting ? 'exporting' : ''}`}
         onClick={handleExportClick}
         disabled={disabled || isExporting}
