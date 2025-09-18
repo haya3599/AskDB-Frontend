@@ -198,18 +198,26 @@ export default function Chat() {
   const handleFirstMessage = async (message) => {
     setIsSending(true)
     
+    // Add user message to chat immediately and switch to chat mode
+    const userMsg = { id: crypto.randomUUID(), role: 'user', content: message }
+    setMessages([userMsg])
+    setInput('')
+    setShowWelcome(false) // Switch to chat immediately
+    
+    // Add typing indicator
+    const typingMsg = { id: 'typing', role: 'assistant', content: 'typing', isTyping: true }
+    setMessages(prev => [...prev, typingMsg])
+    
     try {
-      // Add user message to chat immediately
-      const userMsg = { id: crypto.randomUUID(), role: 'user', content: message }
-      setMessages([userMsg])
-      setInput('')
-      
       // Send message to backend
       const response = await chatAPI.sendMessage(message, selectedFile, null, selectedDatabaseId || null)
       const { message: aiResponse, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
       
       // Clear selected file after sending
       setSelectedFile(null)
+      
+      // Remove typing indicator
+      setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
       
       // Check if SQL confirmation is required
       if (requiresConfirmation && messageId && sql) {
@@ -229,18 +237,18 @@ export default function Chat() {
         setMessages((prev) => [...prev, assistantMsg])
       }
       
-      // Update conversation ID and switch to chat mode
+      // Update conversation ID
       if (conversation_id) {
         setCurrentConversationId(conversation_id)
       }
-      
-      // Switch to regular chat interface
-      setShowWelcome(false)
       
       // Refresh conversation list
       loadConversations()
       
     } catch (error) {
+      // Remove typing indicator
+      setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
+      
       showError(error.response?.data?.message || 'Failed to send message')
       const errorMsg = {
         id: crypto.randomUUID(),

@@ -77,6 +77,21 @@ const MessageContent = ({ message }) => {
     );
   };
 
+  // Handle typing indicator
+  if (message.isTyping) {
+    return (
+      <div className="message-content">
+        <div className="typing-indicator">
+          <div className="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="message-content">
       {/* Main message content */}
