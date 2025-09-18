@@ -468,7 +468,7 @@ export default function Chat() {
     setIsConfirmingSQL(true)
     
     try {
-      const response = await chatAPI.confirmSQL(pendingMessageId, sql)
+      const response = await chatAPI.confirmSQL(pendingMessageId, sql, selectedDatabaseId || null)
       const { message, data } = response.data
       
       // Add the execution result message to chat
@@ -645,22 +645,25 @@ export default function Chat() {
               onClick={async () => {
                 if (!selectedDatabaseId) return;
                 try {
-                  const res = await databasesAPI.exportSQL(selectedDatabaseId)
-                  const blob = new Blob([res.data], { type: 'application/sql' })
+                  // Simple chooser for format
+                  const format = window.prompt('Export format? Enter sql, json, or db', 'sql') || 'sql'
+                  const res = await databasesAPI.export(selectedDatabaseId, format)
+                  const mime = format === 'sql' ? 'application/sql' : (format === 'json' ? 'application/json' : 'application/octet-stream')
+                  const blob = new Blob([res.data], { type: mime })
                   const url = URL.createObjectURL(blob)
                   const a = document.createElement('a')
                   a.href = url
-                  a.download = `database-${selectedDatabaseId}.sql`
+                  a.download = `database-${selectedDatabaseId}.${format}`
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)
                   URL.revokeObjectURL(url)
                 } catch (err) {
-                  showError('Failed to export database SQL')
+                  showError('Failed to export database')
                 }
               }}
               disabled={isSending || !selectedDatabaseId}
-              title="Export selected database as .sql"
+              title="Export selected database"
             >
               Export
             </button>

@@ -155,8 +155,8 @@ export const chatAPI = {
    * @param {string} sql - SQL query to execute (may be modified)
    * @returns {Promise} Axios response with execution results
    */
-  confirmSQL: (messageId, sql) => 
-    api.post('/chat/confirm-sql', { messageId, sql }),
+  confirmSQL: (messageId, sql, databaseId = null) => 
+    api.post('/chat/confirm-sql', { messageId, sql, database_id: databaseId }),
 };
 
 /**
@@ -178,7 +178,7 @@ export const databasesAPI = {
   /**
    * Export database as SQL dump (.sql)
    */
-  exportSQL: (id) => api.get(`/databases/${id}/export?format=sql`, { responseType: 'blob' }),
+  export: (id, format = 'sql') => api.get(`/databases/${id}/export?format=${format}`, { responseType: 'blob' }),
 };
 
 /**
