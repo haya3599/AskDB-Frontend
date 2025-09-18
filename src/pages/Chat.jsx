@@ -151,25 +151,35 @@ export default function Chat() {
       // Clear selected file after sending
       setSelectedFile(null)
       
+      // Always show typing indicator first for AI responses
+      const typingMsg = { id: 'typing', role: 'assistant', content: 'typing', isTyping: true }
+      setMessages((prev) => [...prev, typingMsg])
+      
       // Check if SQL confirmation is required
       if (requiresConfirmation && messageId && sql) {
-        // Show SQL confirmation modal
+        // Remove typing indicator and show SQL confirmation modal
+        setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
         setPendingSQL(sql)
         setPendingMessageId(messageId)
         setShowSQLConfirmation(true)
         
         // Wait for user confirmation before adding message to chat
       } else {
-        // Normal response - create structured assistant message with SQL and results
-        const assistantMsg = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: message,
-          sql: data?.sql || null,
-          results: data?.results || null,
-          actionType: data?.action_type || 'chat'
-        }
-        setMessages((prev) => [...prev, assistantMsg])
+        // Normal response - replace typing indicator with actual response after delay
+        setTimeout(() => {
+          setMessages(prev => {
+            const newMessages = prev.filter(msg => msg.id !== 'typing')
+            const assistantMsg = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: message,
+              sql: data?.sql || null,
+              results: data?.results || null,
+              actionType: data?.action_type || 'chat'
+            }
+            return [...newMessages, assistantMsg]
+          })
+        }, 800) // 800ms delay to show typing indicator
       }
       
       // Update conversation ID for new or changed conversations
@@ -216,25 +226,29 @@ export default function Chat() {
       // Clear selected file after sending
       setSelectedFile(null)
       
-      // Remove typing indicator
-      setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
-      
       // Check if SQL confirmation is required
       if (requiresConfirmation && messageId && sql) {
+        // Remove typing indicator and show SQL confirmation modal
+        setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
         setPendingSQL(sql)
         setPendingMessageId(messageId)
         setShowSQLConfirmation(true)
       } else {
-        // Normal response - create structured assistant message
-        const assistantMsg = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: aiResponse,
-          sql: data?.sql || null,
-          results: data?.results || null,
-          actionType: data?.action_type || 'chat'
-        }
-        setMessages((prev) => [...prev, assistantMsg])
+        // Normal response - replace typing indicator with actual response after delay
+        setTimeout(() => {
+          setMessages(prev => {
+            const newMessages = prev.filter(msg => msg.id !== 'typing')
+            const assistantMsg = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: aiResponse,
+              sql: data?.sql || null,
+              results: data?.results || null,
+              actionType: data?.action_type || 'chat'
+            }
+            return [...newMessages, assistantMsg]
+          })
+        }, 800) // 800ms delay to show typing indicator
       }
       
       // Update conversation ID
@@ -547,20 +561,29 @@ export default function Chat() {
 
     setIsConfirmingSQL(true)
     
+    // Show typing indicator while executing SQL
+    const typingMsg = { id: 'typing', role: 'assistant', content: 'typing', isTyping: true }
+    setMessages((prev) => [...prev, typingMsg])
+    
     try {
       const response = await chatAPI.confirmSQL(pendingMessageId, sql)
       const { message, data } = response.data
       
-      // Add the execution result message to chat
-      const resultMsg = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: message || 'SQL executed successfully',
-        sql: sql,
-        results: data?.results || null,
-        actionType: 'sql_executed'
-      }
-      setMessages((prev) => [...prev, resultMsg])
+      // Replace typing indicator with actual result after delay
+      setTimeout(() => {
+        setMessages(prev => {
+          const newMessages = prev.filter(msg => msg.id !== 'typing')
+          const resultMsg = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: message || 'SQL executed successfully',
+            sql: sql,
+            results: data?.results || null,
+            actionType: 'sql_executed'
+          }
+          return [...newMessages, resultMsg]
+        })
+      }, 600) // 600ms delay for SQL execution
       
       showSuccess('SQL executed successfully')
       
@@ -573,6 +596,8 @@ export default function Chat() {
       loadConversations()
       
     } catch (error) {
+      // Remove typing indicator on error
+      setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
       showError(error.response?.data?.message || 'Failed to execute SQL')
     } finally {
       setIsConfirmingSQL(false)
