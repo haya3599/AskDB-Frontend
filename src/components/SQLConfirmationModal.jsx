@@ -66,8 +66,8 @@ const SQLConfirmationModal = ({
     <div className="sql-confirmation-overlay">
       <div className="sql-confirmation-modal">
         <div className="sql-confirmation-header">
-          <h3>SQL Confirmation Required</h3>
-          <p>This operation will modify the database. Please review the SQL query below.</p>
+          <h3>SQL Preview</h3>
+          <p>Review and edit the SQL query before execution.</p>
         </div>
 
         <div className="sql-confirmation-content">

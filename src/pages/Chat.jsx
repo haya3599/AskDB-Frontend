@@ -158,7 +158,7 @@ export default function Chat() {
         setPendingMessageId(messageId)
         setShowSQLConfirmation(true)
         
-        // Don't add any message to chat yet - wait for user confirmation
+        // Wait for user confirmation before adding message to chat
       } else {
         // Normal response - create structured assistant message with SQL and results
         const assistantMsg = {
@@ -329,7 +329,7 @@ export default function Chat() {
    * @param {string} conversationId - ID of the conversation to load
    */
   const loadConversation = async (conversationId) => {
-    // Don't reload if this conversation is already active
+    // Skip reload if this conversation is already active
     if (currentConversationId === conversationId) {
       return;
     }
@@ -395,8 +395,7 @@ export default function Chat() {
    */
   const handleSearch = async (term) => {
     try {
-      // For now, perform local search through conversations
-      // In a real app, this would call a search API
+      // Perform local search through conversations
       const results = conversations.filter(conv => 
         conv.title?.toLowerCase().includes(term.toLowerCase()) ||
         conv.id?.toLowerCase().includes(term.toLowerCase())

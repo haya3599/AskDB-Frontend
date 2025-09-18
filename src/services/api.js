@@ -110,7 +110,7 @@ export const chatAPI = {
     if (file) {
       formData.append('file', file);
     }
-    // Always append conversation_id, even if null (to distinguish new vs existing conversations)
+    // Append conversation_id to distinguish new vs existing conversations
     formData.append('conversation_id', conversationId || '');
     if (databaseId) {
       formData.append('database_id', databaseId);
