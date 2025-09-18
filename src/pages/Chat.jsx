@@ -458,20 +458,23 @@ export default function Chat() {
       const exportData = {
         id: conversation.id,
         title: conversation.title || `Conversation ${conversation.id.slice(0, 8)}`,
-        createdAt: conversation.createdAt || conversation.timestamp,
-        messages: messages.map(msg => ({
-          id: msg.id,
-          role: 'user',
-          content: msg.prompt || '',
-          timestamp: msg.timestamp
-        })).concat(messages.map(msg => ({
-          id: `${msg.id}-assistant`,
-          role: 'assistant',
-          content: msg.ai_response || '',
-          sql: msg.sql_query || null,
-          results: msg.results || null,
-          timestamp: msg.timestamp
-        })))
+        createdAt: conversation.created_at || conversation.last_message_at || new Date().toISOString(),
+        messages: messages.flatMap(msg => [
+          {
+            id: `${msg.id}-user`,
+            role: 'user',
+            content: msg.prompt || '',
+            timestamp: msg.timestamp
+          },
+          {
+            id: msg.id,
+            role: 'assistant',
+            content: msg.ai_response || '',
+            sql: msg.sql_query || null,
+            results: msg.results || null,
+            timestamp: msg.timestamp
+          }
+        ])
       }
 
       // Format data based on export format
