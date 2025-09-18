@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import FormattedMessage from './FormattedMessage';
+import './FormattedMessage.css';
 
 /**
  * MessageContent Component
@@ -96,7 +98,7 @@ const MessageContent = ({ message }) => {
     <div className="message-content">
       {/* Main message content */}
       <div className="message-text">
-        {message.content}
+        <FormattedMessage content={message.content} />
       </div>
 
       {/* SQL Query Section - only show if there's actual SQL */}

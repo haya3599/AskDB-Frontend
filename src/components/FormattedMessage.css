@@ -1,0 +1,164 @@
+/* FormattedMessage Component Styles */
+
+.formatted-message {
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Headers */
+.formatted-header {
+  margin: 1.5em 0 0.5em 0;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.formatted-header.h1 {
+  font-size: 1.5em;
+  border-bottom: 2px solid #e1e8ed;
+  padding-bottom: 0.3em;
+}
+
+.formatted-header.h2 {
+  font-size: 1.3em;
+  border-bottom: 1px solid #e1e8ed;
+  padding-bottom: 0.2em;
+}
+
+.formatted-header.h3 {
+  font-size: 1.2em;
+}
+
+.formatted-header.h4 {
+  font-size: 1.1em;
+}
+
+.formatted-header.h5,
+.formatted-header.h6 {
+  font-size: 1em;
+  font-weight: 700;
+}
+
+/* Paragraphs */
+.formatted-paragraph {
+  margin: 0.8em 0;
+  line-height: 1.6;
+}
+
+/* Lists */
+.formatted-list {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.formatted-list.bullet-list {
+  list-style-type: disc;
+}
+
+.formatted-list.numbered-list {
+  list-style-type: decimal;
+}
+
+.formatted-list-item {
+  margin: 0.4em 0;
+  line-height: 1.5;
+}
+
+/* Inline formatting */
+.formatted-message strong {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.formatted-message em {
+  font-style: italic;
+  color: #555;
+}
+
+.inline-code {
+  background-color: #f1f3f4;
+  color: #d73a49;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  border: 1px solid #e1e8ed;
+}
+
+/* Code blocks */
+.formatted-code-block {
+  background-color: #f8f9fa;
+  border: 1px solid #e1e8ed;
+  border-radius: 6px;
+  padding: 1em;
+  margin: 1em 0;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.formatted-code-block code {
+  background: none;
+  padding: 0;
+  border: none;
+  color: #24292e;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .formatted-message {
+    color: #e1e8ed;
+  }
+  
+  .formatted-header {
+    color: #f0f6fc;
+  }
+  
+  .formatted-header.h1,
+  .formatted-header.h2 {
+    border-bottom-color: #30363d;
+  }
+  
+  .formatted-message strong {
+    color: #f0f6fc;
+  }
+  
+  .formatted-message em {
+    color: #c9d1d9;
+  }
+  
+  .inline-code {
+    background-color: #21262d;
+    color: #f85149;
+    border-color: #30363d;
+  }
+  
+  .formatted-code-block {
+    background-color: #0d1117;
+    border-color: #30363d;
+  }
+  
+  .formatted-code-block code {
+    color: #e6edf3;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .formatted-message {
+    font-size: 0.95em;
+  }
+  
+  .formatted-header.h1 {
+    font-size: 1.3em;
+  }
+  
+  .formatted-header.h2 {
+    font-size: 1.2em;
+  }
+  
+  .formatted-code-block {
+    font-size: 0.8em;
+    padding: 0.8em;
+  }
+}
