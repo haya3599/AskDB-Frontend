@@ -157,6 +157,15 @@ export const chatAPI = {
    */
   confirmSQL: (messageId, sql) => 
     api.post('/chat/confirm-sql', { messageId, sql }),
+  
+  /**
+   * Cancel a pending SQL operation and remove the message from history
+   * 
+   * @param {string} messageId - ID of the pending operation
+   * @returns {Promise} Axios response with cancellation confirmation
+   */
+  cancelSQL: (messageId) => 
+    api.post('/chat/cancel-sql', { messageId }),
 };
 
 /**

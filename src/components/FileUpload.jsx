@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 /**
  * FileUpload Component
@@ -6,10 +6,9 @@ import { useState, useRef } from 'react';
  * Handles file upload functionality for the chat interface.
  * Supports drag & drop, file validation, and upload progress.
  */
-const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024 }) => {
+const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024, selectedFile = null }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
   // Supported file types
@@ -23,6 +22,13 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
   ];
 
   const supportedExtensions = ['.csv', '.xlsx', '.xls', '.json', '.txt', '.sql'];
+
+  // Clear file input when selectedFile prop becomes null
+  useEffect(() => {
+    if (!selectedFile && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [selectedFile]);
 
   /**
    * Validate file before upload
@@ -59,7 +65,6 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
       return;
     }
 
-    setSelectedFile(file);
     onFileSelect(file);
   };
 
@@ -104,7 +109,6 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
    * Clear selected file
    */
   const clearFile = () => {
-    setSelectedFile(null);
     setUploadProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';

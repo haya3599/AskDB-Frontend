@@ -109,6 +109,15 @@
   cursor: not-allowed;
 }
 
+.sql-btn-cancel {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.sql-btn-cancel:hover:not(:disabled) {
+  background: #dc2626;
+}
+
 .sql-btn-secondary {
   background: #f3f4f6;
   color: #374151;

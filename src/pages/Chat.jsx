@@ -126,7 +126,7 @@ export default function Chat() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const trimmed = input.trim()
-    if (!trimmed || isSending) return
+    if ((!trimmed && !selectedFile) || isSending) return
     
     // If on welcome dashboard, allow sending without database selection
     if (showWelcome) {
@@ -134,13 +134,13 @@ export default function Chat() {
       return
     }
     
-    if (!selectedDatabaseId) {
+    if (!selectedDatabaseId && !selectedFile) {
       showError('Please choose a database before sending a message.')
       return
     }
     
     // Add user message to chat immediately
-    const userMsg = { id: crypto.randomUUID(), role: 'user', content: trimmed }
+    const userMsg = { id: crypto.randomUUID(), role: 'user', content: trimmed || (selectedFile ? `Uploaded file: ${selectedFile.name}` : 'File uploaded') }
     setMessages((prev) => [...prev, userMsg])
     setInput('')
     setIsSending(true)
@@ -214,7 +214,7 @@ export default function Chat() {
     setIsSending(true)
     
     // Add user message to chat immediately and switch to chat mode
-    const userMsg = { id: crypto.randomUUID(), role: 'user', content: message }
+    const userMsg = { id: crypto.randomUUID(), role: 'user', content: message || (selectedFile ? `Uploaded file: ${selectedFile.name}` : 'File uploaded') }
     setMessages([userMsg])
     setInput('')
     setShowWelcome(false) // Switch to chat immediately
@@ -587,7 +587,7 @@ export default function Chat() {
           const resultMsg = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: message || 'SQL executed successfully',
+            content: `✅ ${message || 'SQL executed successfully'}`,
             sql: sql,
             results: data?.results || null,
             actionType: 'sql_executed'
@@ -621,11 +621,35 @@ export default function Chat() {
   /**
    * Handle SQL confirmation cancellation
    */
-  const handleSQLCancellation = () => {
-    // Close the modal without adding any message to chat
-    setShowSQLConfirmation(false)
-    setPendingSQL('')
-    setPendingMessageId(null)
+  const handleSQLCancellation = async () => {
+    if (!pendingMessageId) return
+    
+    try {
+      // Call the backend to cancel the SQL operation and remove the message
+      await chatAPI.cancelSQL(pendingMessageId)
+      
+      // Remove the last message from the conversation (the one that triggered the confirmation)
+      setMessages(prev => {
+        // Remove the last message (the one that triggered SQL confirmation)
+        return prev.slice(0, -1)
+      })
+      
+      // Close the modal
+      setShowSQLConfirmation(false)
+      setPendingSQL('')
+      setPendingMessageId(null)
+      
+      showSuccess('SQL operation cancelled')
+      
+    } catch (error) {
+      console.error('Error cancelling SQL operation:', error)
+      showError(error.response?.data?.message || 'Failed to cancel SQL operation')
+      
+      // Still close the modal even if there's an error
+      setShowSQLConfirmation(false)
+      setPendingSQL('')
+      setPendingMessageId(null)
+    }
   }
 
   return (
@@ -733,11 +757,12 @@ export default function Chat() {
                       onFileSelect={handleFileSelect}
                       disabled={isSending}
                       maxSize={10 * 1024 * 1024}
+                      selectedFile={selectedFile}
                     />
                     <button 
                       className="composer-send" 
                       type="submit" 
-                      disabled={isSending || !input.trim()}
+                      disabled={isSending || (!input.trim() && !selectedFile)}
                     >
                       {isSending ? "Sending..." : "Send"}
                     </button>
@@ -786,7 +811,6 @@ export default function Chat() {
                   onChange={(e) => setSelectedDatabaseId(e.target.value)}
                   disabled={isSending}
                   title="Select a database (optional)"
-                  required
                 >
                   <option value="">Choose database</option>
                   {databases.map((db) => (
@@ -810,8 +834,9 @@ export default function Chat() {
                       onFileSelect={handleFileSelect}
                       disabled={isSending}
                       maxSize={10 * 1024 * 1024} // 10MB
+                      selectedFile={selectedFile}
                     />
-                    <button className="composer-send" type="submit" disabled={isSending || !input.trim() || !selectedDatabaseId}>
+                    <button className="composer-send" type="submit" disabled={isSending || (!input.trim() && !selectedFile) || (!selectedDatabaseId && !selectedFile)}>
                       Send
                     </button>
                   </div>

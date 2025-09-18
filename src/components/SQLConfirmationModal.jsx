@@ -99,6 +99,14 @@ const SQLConfirmationModal = ({
         </div>
 
         <div className="sql-confirmation-actions">
+          <button
+            className="sql-btn sql-btn-cancel"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          
           {!isEditing ? (
             <button
               className="sql-btn sql-btn-primary"
