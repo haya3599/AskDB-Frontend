@@ -28,6 +28,9 @@ export default function Chat() {
   ])
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
+  
+  // Welcome Dashboard state
+  const [showWelcome, setShowWelcome] = useState(true)
   const [conversations, setConversations] = useState([])
   const [currentConversationId, setCurrentConversationId] = useState(null)
   const [loadingConversation, setLoadingConversation] = useState(false)
@@ -122,6 +125,13 @@ export default function Chat() {
     e.preventDefault()
     const trimmed = input.trim()
     if (!trimmed || isSending) return
+    
+    // If on welcome dashboard, allow sending without database selection
+    if (showWelcome) {
+      await handleFirstMessage(trimmed)
+      return
+    }
+    
     if (!selectedDatabaseId) {
       showError('Please choose a database before sending a message.')
       return
@@ -183,11 +193,73 @@ export default function Chat() {
   }
 
   /**
+   * Handle first message from welcome dashboard
+   */
+  const handleFirstMessage = async (message) => {
+    setIsSending(true)
+    
+    try {
+      // Add user message to chat immediately
+      const userMsg = { id: crypto.randomUUID(), role: 'user', content: message }
+      setMessages([userMsg])
+      setInput('')
+      
+      // Send message to backend
+      const response = await chatAPI.sendMessage(message, selectedFile, null, selectedDatabaseId || null)
+      const { message: aiResponse, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
+      
+      // Clear selected file after sending
+      setSelectedFile(null)
+      
+      // Check if SQL confirmation is required
+      if (requiresConfirmation && messageId && sql) {
+        setPendingSQL(sql)
+        setPendingMessageId(messageId)
+        setShowSQLConfirmation(true)
+      } else {
+        // Normal response - create structured assistant message
+        const assistantMsg = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: aiResponse,
+          sql: data?.sql || null,
+          results: data?.results || null,
+          actionType: data?.action_type || 'chat'
+        }
+        setMessages((prev) => [...prev, assistantMsg])
+      }
+      
+      // Update conversation ID and switch to chat mode
+      if (conversation_id) {
+        setCurrentConversationId(conversation_id)
+      }
+      
+      // Switch to regular chat interface
+      setShowWelcome(false)
+      
+      // Refresh conversation list
+      loadConversations()
+      
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to send message')
+      const errorMsg = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      }
+      setMessages((prev) => [...prev, errorMsg])
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  /**
    * Start a new conversation by resetting the chat state
    */
   const startNewChat = () => {
     setMessages([{ id: 'm1', role: 'assistant', content: 'New conversation started. How can I help?' }])
     setCurrentConversationId(null)
+    setShowWelcome(true)
     showInfo('New conversation started')
   }
 
@@ -289,6 +361,7 @@ export default function Chat() {
       
       setMessages(transformedMessages)
       setCurrentConversationId(conversationId)
+      setShowWelcome(false)
     } catch (error) {
       console.error('Failed to load conversation:', error)
       showError('Failed to load conversation')
@@ -593,99 +666,136 @@ export default function Chat() {
         </aside>
 
         <section className="chat-content">
-          {loadingConversation && (
-            <div className="loading-conversation">
-              <div className="loading-spinner"></div>
-              Loading conversation...
+          {showWelcome ? (
+            <div className="welcome-dashboard">
+              <div className="welcome-header">
+                <h1>🚀 Welcome to AskDB</h1>
+                <p>Your AI-powered database assistant is ready to help!</p>
+              </div>
+              
+              <div className="welcome-composer">
+                <form className="composer" onSubmit={handleSubmit}>
+                  <input
+                    className="composer-input"
+                    placeholder="Type your message here..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={isSending}
+                  />
+                  <div className="composer-actions">
+                    <FileUpload
+                      onFileSelect={handleFileSelect}
+                      disabled={isSending}
+                      maxSize={10 * 1024 * 1024}
+                    />
+                    <button 
+                      className="composer-send" 
+                      type="submit" 
+                      disabled={isSending || !input.trim()}
+                    >
+                      {isSending ? "Sending..." : "Send"}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          )}
-          <div ref={listRef} className="message-list">
-            {messages.map((m) => (
-              <div key={m.id} className={`message-row ${m.role}`}>
-                <div className="avatar" aria-hidden>{m.role === 'assistant' ? '🤖' : 'U'}</div>
-                <div className="bubble">
-                  {m.role === 'assistant' ? (
-                    <MessageContent message={m} />
-                  ) : (
-                    <div className="message-text">{m.content}</div>
-                  )}
+          ) : (
+            <>
+              {loadingConversation && (
+                <div className="loading-conversation">
+                  <div className="loading-spinner"></div>
+                  Loading conversation...
                 </div>
+              )}
+              <div ref={listRef} className="message-list">
+                {messages.map((m) => (
+                  <div key={m.id} className={`message-row ${m.role}`}>
+                    <div className="avatar" aria-hidden>{m.role === 'assistant' ? '🤖' : 'U'}</div>
+                    <div className="bubble">
+                      {m.role === 'assistant' ? (
+                        <MessageContent message={m} />
+                      ) : (
+                        <div className="message-text">{m.content}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          {showScrollToBottom && (
-            <button 
-              className="scroll-to-bottom-btn"
-              onClick={scrollToBottom}
-              title="Scroll to latest message"
-            >
-              ↓
-            </button>
-          )}
-
-          <div className="composer-container">
-            <form className="composer" onSubmit={handleSubmit}>
-            <select
-              className="db-selector"
-              value={selectedDatabaseId}
-              onChange={(e) => setSelectedDatabaseId(e.target.value)}
-              disabled={isSending}
-              title="Select a database (optional)"
-              required
-            >
-              <option value="">Choose database</option>
-              {databases.map((db) => (
-                <option key={db.id} value={db.id}>{db.name}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="composer-export"
-              onClick={async () => {
-                if (!selectedDatabaseId) return;
-                try {
-                  // Simple chooser for format
-                  const format = window.prompt('Export format? Enter sql, json, or db', 'sql') || 'sql'
-                  const res = await databasesAPI.export(selectedDatabaseId, format)
-                  const mime = format === 'sql' ? 'application/sql' : (format === 'json' ? 'application/json' : 'application/octet-stream')
-                  const blob = new Blob([res.data], { type: mime })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `database-${selectedDatabaseId}.${format}`
-                  document.body.appendChild(a)
-                  a.click()
-                  document.body.removeChild(a)
-                  URL.revokeObjectURL(url)
-                } catch (err) {
-                  showError('Failed to export database')
-                }
-              }}
-              disabled={isSending || !selectedDatabaseId}
-              title="Export selected database"
-            >
-              Export
-            </button>
-              <input
-                className="composer-input"
-                placeholder="Message askDB..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                disabled={isSending}
-              />
-              <div className="composer-actions">
-                <FileUpload
-                  onFileSelect={handleFileSelect}
-                  disabled={isSending}
-                  maxSize={10 * 1024 * 1024} // 10MB
-                />
-                <button className="composer-send" type="submit" disabled={isSending || !input.trim() || !selectedDatabaseId}>
-                  Send
+              
+              {showScrollToBottom && (
+                <button 
+                  className="scroll-to-bottom-btn"
+                  onClick={scrollToBottom}
+                  title="Scroll to latest message"
+                >
+                  ↓
                 </button>
+              )}
+
+              <div className="composer-container">
+                <form className="composer" onSubmit={handleSubmit}>
+                <select
+                  className="db-selector"
+                  value={selectedDatabaseId}
+                  onChange={(e) => setSelectedDatabaseId(e.target.value)}
+                  disabled={isSending}
+                  title="Select a database (optional)"
+                  required
+                >
+                  <option value="">Choose database</option>
+                  {databases.map((db) => (
+                    <option key={db.id} value={db.id}>{db.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="composer-export"
+                  onClick={async () => {
+                    if (!selectedDatabaseId) return;
+                    try {
+                      // Simple chooser for format
+                      const format = window.prompt('Export format? Enter sql, json, or db', 'sql') || 'sql'
+                      const res = await databasesAPI.export(selectedDatabaseId, format)
+                      const mime = format === 'sql' ? 'application/sql' : (format === 'json' ? 'application/json' : 'application/octet-stream')
+                      const blob = new Blob([res.data], { type: mime })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = `database-${selectedDatabaseId}.${format}`
+                      document.body.appendChild(a)
+                      a.click()
+                      document.body.removeChild(a)
+                      URL.revokeObjectURL(url)
+                    } catch (err) {
+                      showError('Failed to export database')
+                    }
+                  }}
+                  disabled={isSending || !selectedDatabaseId}
+                  title="Export selected database"
+                >
+                  Export
+                </button>
+                  <input
+                    className="composer-input"
+                    placeholder="Message askDB..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={isSending}
+                  />
+                  <div className="composer-actions">
+                    <FileUpload
+                      onFileSelect={handleFileSelect}
+                      disabled={isSending}
+                      maxSize={10 * 1024 * 1024} // 10MB
+                    />
+                    <button className="composer-send" type="submit" disabled={isSending || !input.trim() || !selectedDatabaseId}>
+                      Send
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
+            </>
+          )}
         </section>
       </main>
 
