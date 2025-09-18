@@ -144,6 +144,7 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
           <div className="file-icon-selected">
             <span className="file-icon-small">📄</span>
             <button
+              type="button"
               className="file-remove-btn-small"
               onClick={(e) => {
                 e.stopPropagation();
