@@ -155,8 +155,8 @@ export const chatAPI = {
    * @param {string} sql - SQL query to execute (may be modified)
    * @returns {Promise} Axios response with execution results
    */
-  confirmSQL: (messageId, sql, databaseId = null) => 
-    api.post('/chat/confirm-sql', { messageId, sql, database_id: databaseId }),
+  confirmSQL: (messageId, sql) => 
+    api.post('/chat/confirm-sql', { messageId, sql }),
 };
 
 /**

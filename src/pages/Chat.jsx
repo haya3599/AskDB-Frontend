@@ -548,7 +548,7 @@ export default function Chat() {
     setIsConfirmingSQL(true)
     
     try {
-      const response = await chatAPI.confirmSQL(pendingMessageId, sql, selectedDatabaseId || null)
+      const response = await chatAPI.confirmSQL(pendingMessageId, sql)
       const { message, data } = response.data
       
       // Add the execution result message to chat
