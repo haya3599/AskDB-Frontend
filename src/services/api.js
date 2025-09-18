@@ -162,7 +162,7 @@ export const chatAPI = {
 /**
  * Databases API Service
  *
- * Fetches the current user's databases for selection.
+ * Fetches the current user's databases for selection and manages database operations.
  */
 export const databasesAPI = {
   /**
@@ -170,11 +170,20 @@ export const databasesAPI = {
    * @returns {Promise} Axios response with databases array
    */
   getAll: () => api.get('/databases'),
+  
+  /**
+   * Create a new database
+   * @param {Object} databaseData - Database creation data
+   * @returns {Promise} Axios response with created database
+   */
+  create: (databaseData) => api.post('/databases', databaseData),
+  
   /**
    * Get schema for a specific database
    * @param {string} id
    */
   getSchema: (id) => api.get(`/databases/${id}/schema`),
+  
   /**
    * Export database as SQL dump (.sql)
    */

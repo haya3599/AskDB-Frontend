@@ -145,11 +145,7 @@ const ConversationExport = ({
    * Handle export button click
    */
   const handleExportClick = () => {
-    if (showOptions) {
-      handleExport(exportFormat);
-    } else {
-      setShowOptions(true);
-    }
+    setShowOptions(true);
   };
 
   /**
@@ -181,89 +177,107 @@ const ConversationExport = ({
   }
 
   return (
-    <div className="conversation-export-container" ref={popupRef}>
-      <div className="export-button-container">
-        <button
-          className={`export-btn ${isExporting ? 'exporting' : ''}`}
-          onClick={handleExportClick}
-          disabled={disabled || isExporting}
-        >
-          {isExporting ? (
-            <>
-              <div className="export-spinner"></div>
-              Exporting...
-            </>
-          ) : (
-            <>
-              <span className="export-icon">📥</span>
-              Export
-            </>
-          )}
-        </button>
+    <>
+      <button
+        className={`conversation-export-btn ${isExporting ? 'exporting' : ''}`}
+        onClick={handleExportClick}
+        disabled={disabled || isExporting}
+        title="Export conversation"
+      >
+        {isExporting ? (
+          <>
+            <div className="export-spinner"></div>
+            Exporting...
+          </>
+        ) : (
+          <>
+            <span className="export-icon">📥</span>
+            Export
+          </>
+        )}
+      </button>
 
-        {showOptions && (
-          <div className="export-options">
-            <div className="export-options-header">
-              <span>Export Format</span>
+      {showOptions && (
+        <div className="conversation-export-modal-overlay">
+          <div className="conversation-export-modal" ref={popupRef}>
+            <div className="export-modal-header">
+              <h3>Export Conversation</h3>
               <button
-                className="export-close-btn"
+                className="export-modal-close-btn"
                 onClick={() => setShowOptions(false)}
+                disabled={isExporting}
               >
                 ✕
               </button>
             </div>
             
-            <div className="export-format-options">
-              <label className="export-format-option">
-                <input
-                  type="radio"
-                  name="exportFormat"
-                  value="json"
-                  checked={exportFormat === 'json'}
-                  onChange={(e) => setExportFormat(e.target.value)}
-                />
-                <span className="format-label">
-                  <span className="format-name">JSON</span>
-                  <span className="format-desc">Structured data format</span>
-                </span>
-              </label>
+            <div className="export-modal-content">
+              <p className="export-modal-description">
+                Choose the format for exporting <strong>{conversation.title || `Conversation ${conversation.id?.slice(0, 8)}`}</strong>:
+              </p>
+              
+              <div className="export-format-options">
+                <label className="export-format-option">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="json"
+                    checked={exportFormat === 'json'}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    disabled={isExporting}
+                  />
+                  <span className="format-label">
+                    <span className="format-name">JSON</span>
+                    <span className="format-desc">Structured data format (.json)</span>
+                  </span>
+                </label>
 
-              <label className="export-format-option">
-                <input
-                  type="radio"
-                  name="exportFormat"
-                  value="csv"
-                  checked={exportFormat === 'csv'}
-                  onChange={(e) => setExportFormat(e.target.value)}
-                />
-                <span className="format-label">
-                  <span className="format-name">CSV</span>
-                  <span className="format-desc">Spreadsheet format</span>
-                </span>
-              </label>
+                <label className="export-format-option">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="csv"
+                    checked={exportFormat === 'csv'}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    disabled={isExporting}
+                  />
+                  <span className="format-label">
+                    <span className="format-name">CSV</span>
+                    <span className="format-desc">Spreadsheet format (.csv)</span>
+                  </span>
+                </label>
 
-              <label className="export-format-option">
-                <input
-                  type="radio"
-                  name="exportFormat"
-                  value="txt"
-                  checked={exportFormat === 'txt'}
-                  onChange={(e) => setExportFormat(e.target.value)}
-                />
-                <span className="format-label">
-                  <span className="format-name">Text</span>
-                  <span className="format-desc">Plain text format</span>
-                </span>
-              </label>
+                <label className="export-format-option">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="txt"
+                    checked={exportFormat === 'txt'}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    disabled={isExporting}
+                  />
+                  <span className="format-label">
+                    <span className="format-name">Text</span>
+                    <span className="format-desc">Plain text format (.txt)</span>
+                  </span>
+                </label>
+              </div>
             </div>
 
-            <div className="export-actions">
+            <div className="export-modal-actions">
               <button
-                className="export-confirm-btn"
+                className="export-download-btn"
                 onClick={() => handleExport(exportFormat)}
                 disabled={isExporting}
               >
-                Download
+                {isExporting ? (
+                  <>
+                    <div className="export-spinner"></div>
+                    Downloading...
+                  </>
+                ) : (
+                  'Download'
+                )}
               </button>
               <button
                 className="export-cancel-btn"
@@ -274,9 +288,9 @@ const ConversationExport = ({
               </button>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

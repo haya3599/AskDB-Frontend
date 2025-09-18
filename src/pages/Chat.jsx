@@ -7,11 +7,13 @@ import MessageContent from '../components/MessageContent'
 import FileUpload from '../components/FileUpload'
 import QuerySearch from '../components/QuerySearch'
 import ConversationExport from '../components/ConversationExport'
+import DatabaseExport from '../components/DatabaseExport'
 import SQLConfirmationModal from '../components/SQLConfirmationModal'
 import './Chat.css'
 import '../components/FileUpload.css'
 import '../components/QuerySearch.css'
 import '../components/ConversationExport.css'
+import '../components/DatabaseExport.css'
 import '../components/SQLConfirmationModal.css'
 
 /**
@@ -189,6 +191,9 @@ export default function Chat() {
       
       // Refresh conversation list to show updates
       loadConversations()
+      
+      // Refresh database list in case a new database was created
+      loadDatabases()
     } catch (error) {
       showError(error.response?.data?.message || 'Failed to send message')
       const errorMsg = {
@@ -258,6 +263,9 @@ export default function Chat() {
       
       // Refresh conversation list
       loadConversations()
+      
+      // Refresh database list in case a new database was created
+      loadDatabases()
       
     } catch (error) {
       // Remove typing indicator
@@ -595,6 +603,9 @@ export default function Chat() {
       // Refresh conversation list
       loadConversations()
       
+      // Refresh database list in case a new database was created
+      loadDatabases()
+      
     } catch (error) {
       // Remove typing indicator on error
       setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
@@ -779,34 +790,11 @@ export default function Chat() {
                     <option key={db.id} value={db.id}>{db.name}</option>
                   ))}
                 </select>
-                <button
-                  type="button"
-                  className="composer-export"
-                  onClick={async () => {
-                    if (!selectedDatabaseId) return;
-                    try {
-                      // Simple chooser for format
-                      const format = window.prompt('Export format? Enter sql, json, or db', 'sql') || 'sql'
-                      const res = await databasesAPI.export(selectedDatabaseId, format)
-                      const mime = format === 'sql' ? 'application/sql' : (format === 'json' ? 'application/json' : 'application/octet-stream')
-                      const blob = new Blob([res.data], { type: mime })
-                      const url = URL.createObjectURL(blob)
-                      const a = document.createElement('a')
-                      a.href = url
-                      a.download = `database-${selectedDatabaseId}.${format}`
-                      document.body.appendChild(a)
-                      a.click()
-                      document.body.removeChild(a)
-                      URL.revokeObjectURL(url)
-                    } catch (err) {
-                      showError('Failed to export database')
-                    }
-                  }}
-                  disabled={isSending || !selectedDatabaseId}
-                  title="Export selected database"
-                >
-                  Export
-                </button>
+                <DatabaseExport
+                  databaseId={selectedDatabaseId}
+                  databaseName={databases.find(db => db.id === selectedDatabaseId)?.name}
+                  disabled={isSending}
+                />
                   <input
                     className="composer-input"
                     placeholder="Message askDB..."

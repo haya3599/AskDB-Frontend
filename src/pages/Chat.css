@@ -70,6 +70,64 @@
 .composer-send:disabled { opacity: 0.5; cursor: not-allowed; }
 .composer-send:hover:not(:disabled) { background: #2e49b4; }
 
+
+/* Database Selector Container */
+.db-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.db-selector {
+  width: 200px;
+  background: #1e293b;
+  color: #ffffff;
+  border: 1px solid #263041;
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.db-selector:focus {
+  border-color: #3759d6;
+  box-shadow: 0 0 0 3px rgba(55,89,214,0.2);
+}
+
+.db-selector:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.db-refresh-btn {
+  background: #1e293b;
+  color: #ffffff;
+  border: 1px solid #263041;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+}
+
+.db-refresh-btn:hover:not(:disabled) {
+  background: #253346;
+  border-color: #374151;
+  transform: translateY(-1px);
+}
+
+.db-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Message Content Styling */
 .message-content {
   display: flex;

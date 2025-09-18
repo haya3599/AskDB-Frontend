@@ -1,49 +1,36 @@
-/* Conversation Export Component Styles */
-.conversation-export-container {
-  position: relative;
-  display: inline-block;
-}
-
-.export-button-container {
-  position: relative;
-}
-
-.conversation-export-btn {
+/* Database Export Component Styles */
+.database-export-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
-  background-color: #3b82f6;
+  padding: 0 16px;
+  background: #059669;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  height: 40px;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
-.conversation-export-btn:hover:not(:disabled) {
-  background-color: #2563eb;
+.database-export-btn:hover:not(:disabled) {
+  background: #047857;
   transform: translateY(-1px);
 }
 
-.conversation-export-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.conversation-export-btn:disabled {
-  opacity: 0.6;
+.database-export-btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
-.conversation-export-btn.exporting {
-  background-color: #6b7280;
+.database-export-btn.exporting {
+  background: #6b7280;
 }
 
 .export-icon {
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 .export-spinner {
@@ -61,7 +48,7 @@
 }
 
 /* Modal Overlay */
-.conversation-export-modal-overlay {
+.database-export-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -76,7 +63,7 @@
 }
 
 /* Modal */
-.conversation-export-modal {
+.database-export-modal {
   background: #1e293b;
   border: 1px solid #263041;
   border-radius: 16px;
@@ -100,7 +87,7 @@
 }
 
 /* Modal Header */
-.conversation-export-modal .export-modal-header {
+.export-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -109,14 +96,14 @@
   background: linear-gradient(135deg, #1e293b 0%, #253346 100%);
 }
 
-.conversation-export-modal .export-modal-header h3 {
+.export-modal-header h3 {
   margin: 0;
-  color: #ffffff !important;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 700;
 }
 
-.conversation-export-modal .export-modal-close-btn {
+.export-modal-close-btn {
   background: transparent;
   border: none;
   color: #a0aec0;
@@ -132,41 +119,41 @@
   justify-content: center;
 }
 
-.conversation-export-modal .export-modal-close-btn:hover:not(:disabled) {
+.export-modal-close-btn:hover:not(:disabled) {
   background: #374151;
   color: #ffffff;
 }
 
-.conversation-export-modal .export-modal-close-btn:disabled {
+.export-modal-close-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Modal Content */
-.conversation-export-modal .export-modal-content {
+.export-modal-content {
   padding: 24px;
 }
 
-.conversation-export-modal .export-modal-description {
+.database-export-modal .export-modal-description {
   color: #ffffff !important;
   margin: 0 0 20px 0;
   font-size: 15px;
   line-height: 1.5;
 }
 
-.conversation-export-modal .export-modal-description strong {
+.database-export-modal .export-modal-description strong {
   color: #60a5fa !important;
   font-weight: 600;
 }
 
 /* Format Options */
-.conversation-export-modal .export-format-options {
+.export-format-options {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.conversation-export-modal .export-format-option {
+.export-format-option {
   display: flex;
   align-items: center;
   padding: 16px;
@@ -177,45 +164,45 @@
   transition: all 0.2s ease;
 }
 
-.conversation-export-modal .export-format-option:hover {
+.export-format-option:hover {
   background: #1a202c;
   border-color: #263041;
   transform: translateY(-1px);
 }
 
-.conversation-export-modal .export-format-option input[type="radio"] {
+.export-format-option input[type="radio"] {
   margin-right: 16px;
-  accent-color: #3b82f6;
+  accent-color: #059669;
   width: 18px;
   height: 18px;
 }
 
-.conversation-export-modal .export-format-option input[type="radio"]:disabled {
+.export-format-option input[type="radio"]:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.conversation-export-modal .format-label {
+.format-label {
   display: flex;
   flex-direction: column;
   gap: 4px;
   flex: 1;
 }
 
-.conversation-export-modal .format-name {
+.database-export-modal .format-name {
   font-weight: 600;
   color: #ffffff !important;
   font-size: 15px;
 }
 
-.conversation-export-modal .format-desc {
+.database-export-modal .format-desc {
   font-size: 13px;
   color: #d1d5db !important;
   line-height: 1.4;
 }
 
 /* Modal Actions */
-.conversation-export-modal .export-modal-actions {
+.export-modal-actions {
   display: flex;
   gap: 12px;
   padding: 20px 24px;
@@ -224,12 +211,12 @@
   justify-content: flex-end;
 }
 
-.conversation-export-modal .export-download-btn {
+.export-download-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: #3b82f6;
+  background: #059669;
   color: white;
   border: none;
   border-radius: 10px;
@@ -241,18 +228,18 @@
   justify-content: center;
 }
 
-.conversation-export-modal .export-download-btn:hover:not(:disabled) {
-  background: #2563eb;
+.export-download-btn:hover:not(:disabled) {
+  background: #047857;
   transform: translateY(-1px);
 }
 
-.conversation-export-modal .export-download-btn:disabled {
+.export-download-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-.conversation-export-modal .export-cancel-btn {
+.export-cancel-btn {
   padding: 12px 24px;
   background: #374151;
   color: #e2e8f0;
@@ -264,13 +251,13 @@
   transition: all 0.2s ease;
 }
 
-.conversation-export-modal .export-cancel-btn:hover:not(:disabled) {
+.export-cancel-btn:hover:not(:disabled) {
   background: #4b5563;
   color: #ffffff;
   transform: translateY(-1px);
 }
 
-.conversation-export-modal .export-cancel-btn:disabled {
+.export-cancel-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -278,23 +265,23 @@
 
 /* Responsive design */
 @media (max-width: 640px) {
-  .conversation-export-modal {
+  .database-export-modal {
     width: 95%;
     margin: 20px;
   }
   
-  .conversation-export-modal .export-modal-header,
-  .conversation-export-modal .export-modal-content,
-  .conversation-export-modal .export-modal-actions {
+  .export-modal-header,
+  .export-modal-content,
+  .export-modal-actions {
     padding: 16px;
   }
   
-  .conversation-export-modal .export-modal-actions {
+  .export-modal-actions {
     flex-direction: column;
   }
   
-  .conversation-export-modal .export-download-btn,
-  .conversation-export-modal .export-cancel-btn {
+  .export-download-btn,
+  .export-cancel-btn {
     width: 100%;
     padding: 14px 20px;
   }
