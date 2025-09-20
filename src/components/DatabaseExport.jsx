@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { databasesAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import { extractErrorMessage, logTechnicalError } from '../utils/errorUtils';
 import './DatabaseExport.css';
 
 /**
@@ -75,8 +76,9 @@ const DatabaseExport = ({
       showSuccess(`Database exported as ${format.toUpperCase()}`);
       setShowModal(false);
     } catch (error) {
-      console.error('Export error:', error);
-      showError('Failed to export database. Please try again.');
+      logTechnicalError(error, 'export database');
+      const userFriendlyMessage = extractErrorMessage(error, 'export database');
+      showError(userFriendlyMessage);
     } finally {
       setIsExporting(false);
     }

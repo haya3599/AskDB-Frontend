@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { sanitizeErrorMessage } from '../utils/errorUtils';
 
 /**
  * FileUpload Component
@@ -62,7 +63,8 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
     const validation = validateFile(file);
     
     if (!validation.valid) {
-      alert(validation.error);
+      const userFriendlyError = sanitizeErrorMessage(validation.error, 'file upload');
+      alert(userFriendlyError);
       return;
     }
 

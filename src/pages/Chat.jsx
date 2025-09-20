@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { chatAPI, databasesAPI } from '../services/api'
+import { extractErrorMessage, logTechnicalError } from '../utils/errorUtils'
 import MessageContent from '../components/MessageContent'
 import FileUpload from '../components/FileUpload'
 import QuerySearch from '../components/QuerySearch'
@@ -195,7 +196,9 @@ export default function Chat() {
       // Refresh database list in case a new database was created
       loadDatabases()
     } catch (error) {
-      showError(error.response?.data?.message || 'Failed to send message')
+      logTechnicalError(error, 'send message')
+      const userFriendlyMessage = extractErrorMessage(error, 'send message')
+      showError(userFriendlyMessage)
       const errorMsg = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -271,7 +274,9 @@ export default function Chat() {
       // Remove typing indicator
       setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
       
-      showError(error.response?.data?.message || 'Failed to send message')
+      logTechnicalError(error, 'send first message')
+      const userFriendlyMessage = extractErrorMessage(error, 'send first message')
+      showError(userFriendlyMessage)
       const errorMsg = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -333,13 +338,9 @@ export default function Chat() {
       
       showSuccess('Conversation deleted successfully');
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
-      
-      // Parse error message from API response
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          'Failed to delete conversation';
-      showError(errorMessage);
+      logTechnicalError(error, 'delete conversation');
+      const userFriendlyMessage = extractErrorMessage(error, 'delete conversation');
+      showError(userFriendlyMessage);
     } finally {
       setDeletingConversation(null);
     }
@@ -393,8 +394,9 @@ export default function Chat() {
       setCurrentConversationId(conversationId)
       setShowWelcome(false)
     } catch (error) {
-      console.error('Failed to load conversation:', error)
-      showError('Failed to load conversation')
+      logTechnicalError(error, 'load conversation')
+      const userFriendlyMessage = extractErrorMessage(error, 'load conversation')
+      showError(userFriendlyMessage)
     } finally {
       setLoadingConversation(false)
     }
@@ -513,8 +515,9 @@ export default function Chat() {
 
       showSuccess(`Conversation exported as ${format.toUpperCase()}`)
     } catch (error) {
-      console.error('Export error:', error)
-      showError('Failed to export conversation')
+      logTechnicalError(error, 'export conversation')
+      const userFriendlyMessage = extractErrorMessage(error, 'export conversation')
+      showError(userFriendlyMessage)
     }
   }
 
@@ -612,7 +615,9 @@ export default function Chat() {
     } catch (error) {
       // Remove typing indicator on error
       setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
-      showError(error.response?.data?.message || 'Failed to execute SQL')
+      logTechnicalError(error, 'execute SQL')
+      const userFriendlyMessage = extractErrorMessage(error, 'execute SQL')
+      showError(userFriendlyMessage)
     } finally {
       setIsConfirmingSQL(false)
     }
@@ -642,8 +647,9 @@ export default function Chat() {
       showSuccess('SQL operation cancelled')
       
     } catch (error) {
-      console.error('Error cancelling SQL operation:', error)
-      showError(error.response?.data?.message || 'Failed to cancel SQL operation')
+      logTechnicalError(error, 'cancel SQL operation')
+      const userFriendlyMessage = extractErrorMessage(error, 'cancel SQL operation')
+      showError(userFriendlyMessage)
       
       // Still close the modal even if there's an error
       setShowSQLConfirmation(false)
