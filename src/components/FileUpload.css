@@ -4,6 +4,95 @@
   position: relative;
 }
 
+/* Full-screen drag overlay */
+.drag-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(59, 130, 246, 0.1);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: dragOverlayFadeIn 0.2s ease-out;
+}
+
+.drag-overlay-content {
+  text-align: center;
+  background: white;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 3px dashed #3b82f6;
+  max-width: 400px;
+  animation: dragOverlayBounce 0.3s ease-out;
+}
+
+.drag-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: dragIconPulse 1.5s ease-in-out infinite;
+}
+
+.drag-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.drag-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.drag-hint {
+  font-size: 0.875rem;
+  color: #3b82f6;
+  font-weight: 500;
+  background: #eff6ff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* Animations */
+@keyframes dragOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dragOverlayBounce {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dragIconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 /* Compact file upload icon */
 .file-upload-icon {
   width: 40px;

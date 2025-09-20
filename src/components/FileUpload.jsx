@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024, selectedFile = null }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [dragCounter, setDragCounter] = useState(0);
   const fileInputRef = useRef(null);
 
   // Supported file types
@@ -69,23 +70,150 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
   };
 
   /**
-   * Handle drag and drop events
+   * Handle drag and drop events with global document listeners
+   */
+  useEffect(() => {
+    let dragTimeout = null;
+
+    const handleGlobalDragOver = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleGlobalDragEnter = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled) {
+        setDragCounter(prev => {
+          const newCount = prev + 1;
+          if (newCount === 1) {
+            setIsDragOver(true);
+          }
+          return newCount;
+        });
+        // Clear any existing timeout
+        if (dragTimeout) {
+          clearTimeout(dragTimeout);
+          dragTimeout = null;
+        }
+      }
+    };
+
+    const handleGlobalDragLeave = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled) {
+        setDragCounter(prev => {
+          const newCount = prev - 1;
+          if (newCount <= 0) {
+            // Add a small delay to prevent flickering
+            dragTimeout = setTimeout(() => {
+              setIsDragOver(false);
+              setDragCounter(0);
+            }, 100);
+          }
+          return newCount;
+        });
+      }
+    };
+
+    const handleGlobalDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      setDragCounter(0);
+      if (dragTimeout) {
+        clearTimeout(dragTimeout);
+        dragTimeout = null;
+      }
+      
+      if (disabled) return;
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        handleFileSelect(files[0]);
+      }
+    };
+
+    // Handle drag end (when user cancels drag by releasing outside browser)
+    const handleGlobalDragEnd = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      setDragCounter(0);
+      if (dragTimeout) {
+        clearTimeout(dragTimeout);
+        dragTimeout = null;
+      }
+    };
+
+    // Handle window focus/blur to detect when drag goes outside browser
+    const handleWindowBlur = () => {
+      setIsDragOver(false);
+      setDragCounter(0);
+      if (dragTimeout) {
+        clearTimeout(dragTimeout);
+        dragTimeout = null;
+      }
+    };
+
+    // Handle mouse up anywhere to clear drag state
+    const handleMouseUp = () => {
+      // Only clear if we're currently in drag state
+      if (isDragOver) {
+        // Small delay to allow dragend to fire first
+        setTimeout(() => {
+          setIsDragOver(false);
+          setDragCounter(0);
+          if (dragTimeout) {
+            clearTimeout(dragTimeout);
+            dragTimeout = null;
+          }
+        }, 50);
+      }
+    };
+
+    // Add global event listeners
+    document.addEventListener('dragenter', handleGlobalDragEnter);
+    document.addEventListener('dragover', handleGlobalDragOver);
+    document.addEventListener('dragleave', handleGlobalDragLeave);
+    document.addEventListener('drop', handleGlobalDrop);
+    document.addEventListener('dragend', handleGlobalDragEnd);
+    document.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('dragenter', handleGlobalDragEnter);
+      document.removeEventListener('dragover', handleGlobalDragOver);
+      document.removeEventListener('dragleave', handleGlobalDragLeave);
+      document.removeEventListener('drop', handleGlobalDrop);
+      document.removeEventListener('dragend', handleGlobalDragEnd);
+      document.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('blur', handleWindowBlur);
+      if (dragTimeout) {
+        clearTimeout(dragTimeout);
+      }
+    };
+  }, [disabled, dragCounter]);
+
+  /**
+   * Handle drag and drop events for the upload button
    */
   const handleDragOver = (e) => {
     e.preventDefault();
-    if (!disabled) {
-      setIsDragOver(true);
-    }
+    e.stopPropagation();
   };
 
   const handleDragLeave = (e) => {
     e.preventDefault();
-    setIsDragOver(false);
+    e.stopPropagation();
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
+    setDragCounter(0);
     
     if (disabled) return;
 
@@ -126,56 +254,74 @@ const FileUpload = ({ onFileSelect, disabled = false, maxSize = 10 * 1024 * 1024
   };
 
   return (
-    <div className="file-upload-container">
-      <div
-        className={`file-upload-icon ${isDragOver ? 'drag-over' : ''} ${disabled ? 'disabled' : ''} ${selectedFile ? 'has-file' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={triggerFileInput}
-        title={selectedFile ? `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)` : 'Upload file (csv,xlsx,xls,json,txt,sql)'}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={supportedExtensions.join(',')}
-          onChange={handleFileInputChange}
-          style={{ display: 'none' }}
-          disabled={disabled}
-        />
-        
-        {selectedFile ? (
-          <div className="file-icon-selected">
-            <span className="file-icon-small">📄</span>
-            <button
-              type="button"
-              className="file-remove-btn-small"
-              onClick={(e) => {
-                e.stopPropagation();
-                clearFile();
-              }}
-              disabled={disabled}
-              title="Remove file"
-            >
-              ✕
-            </button>
-          </div>
-        ) : (
-          <span className="upload-icon-small">📁</span>
-        )}
-      </div>
-
-      {uploadProgress > 0 && uploadProgress < 100 && (
-        <div className="upload-progress-small">
-          <div className="progress-bar-small">
-            <div 
-              className="progress-fill-small" 
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
+    <>
+      {/* Full-screen drag overlay */}
+      {isDragOver && (
+        <div className="drag-overlay">
+          <div className="drag-overlay-content">
+            <div className="drag-icon">📁</div>
+            <h2 className="drag-title">Drop your file here</h2>
+            <p className="drag-subtitle">
+              Supported formats: CSV, Excel, JSON, TXT, SQL
+            </p>
+            <div className="drag-hint">
+              Release to upload
+            </div>
           </div>
         </div>
       )}
-    </div>
+
+      <div className="file-upload-container">
+        <div
+          className={`file-upload-icon ${isDragOver ? 'drag-over' : ''} ${disabled ? 'disabled' : ''} ${selectedFile ? 'has-file' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={triggerFileInput}
+          title={selectedFile ? `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)` : 'Upload file (csv,xlsx,xls,json,txt,sql)'}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={supportedExtensions.join(',')}
+            onChange={handleFileInputChange}
+            style={{ display: 'none' }}
+            disabled={disabled}
+          />
+          
+          {selectedFile ? (
+            <div className="file-icon-selected">
+              <span className="file-icon-small">📄</span>
+              <button
+                type="button"
+                className="file-remove-btn-small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearFile();
+                }}
+                disabled={disabled}
+                title="Remove file"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <span className="upload-icon-small">📁</span>
+          )}
+        </div>
+
+        {uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="upload-progress-small">
+            <div className="progress-bar-small">
+              <div 
+                className="progress-fill-small" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
