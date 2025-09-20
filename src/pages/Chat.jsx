@@ -587,7 +587,7 @@ export default function Chat() {
           const resultMsg = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: `✅ ${message || 'SQL executed successfully'}`,
+            content: ` ${message || 'SQL executed successfully'}`,
             sql: sql,
             results: data?.results || null,
             actionType: 'sql_executed'
