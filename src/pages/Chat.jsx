@@ -10,6 +10,7 @@ import QuerySearch from '../components/QuerySearch'
 import ConversationExport from '../components/ConversationExport'
 import DatabaseExport from '../components/DatabaseExport'
 import SQLConfirmationModal from '../components/SQLConfirmationModal'
+import CreateDatabaseModal from '../components/CreateDatabaseModal'
 import './Chat.css'
 import '../components/FileUpload.css'
 import '../components/QuerySearch.css'
@@ -52,6 +53,10 @@ export default function Chat() {
   const [pendingMessageId, setPendingMessageId] = useState(null)
   const [isConfirmingSQL, setIsConfirmingSQL] = useState(false)
   
+  // Create Database Modal state
+  const [showCreateDatabaseModal, setShowCreateDatabaseModal] = useState(false)
+  const [isCreatingDatabase, setIsCreatingDatabase] = useState(false)
+  
   // Refs and hooks
   const listRef = useRef(null)
   const navigate = useNavigate()
@@ -72,6 +77,14 @@ export default function Chat() {
       loadDatabases()
     }
   }, [isAuthenticated])
+
+  // Check if user should see welcome dashboard (only for new users with no databases)
+  useEffect(() => {
+    if (isAuthenticated() && databases.length === 0 && !showWelcome) {
+      // New user with no databases, show welcome dashboard
+      setShowWelcome(true)
+    }
+  }, [databases, isAuthenticated, showWelcome])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -221,6 +234,7 @@ export default function Chat() {
     setMessages([userMsg])
     setInput('')
     setShowWelcome(false) // Switch to chat immediately
+    showInfo('New conversation started') // Show toast when transitioning to chat
     
     // Add typing indicator
     const typingMsg = { id: 'typing', role: 'assistant', content: 'typing', isTyping: true }
@@ -277,25 +291,33 @@ export default function Chat() {
       logTechnicalError(error, 'send first message')
       const userFriendlyMessage = extractErrorMessage(error, 'send first message')
       showError(userFriendlyMessage)
-      const errorMsg = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+      
+      // If this was a new conversation attempt that failed, go back to welcome dashboard
+      if (!currentConversationId) {
+        setMessages([{ id: 'm1', role: 'assistant', content: 'Hi! Ask me anything about your database.' }])
+        setShowWelcome(true)
+        showInfo('Please try again from the welcome dashboard')
+      } else {
+        // For existing conversations, show error message
+        const errorMsg = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.'
+        }
+        setMessages((prev) => [...prev, errorMsg])
       }
-      setMessages((prev) => [...prev, errorMsg])
     } finally {
       setIsSending(false)
     }
   }
 
   /**
-   * Start a new conversation by resetting the chat state
+   * Start a new conversation by showing welcome dashboard
    */
   const startNewChat = () => {
-    setMessages([{ id: 'm1', role: 'assistant', content: 'New conversation started. How can I help?' }])
+    setMessages([{ id: 'm1', role: 'assistant', content: 'Hi! Ask me anything about your database.' }])
     setCurrentConversationId(null)
     setShowWelcome(true)
-    showInfo('New conversation started')
   }
 
   /**
@@ -409,6 +431,67 @@ export default function Chat() {
    */
   const handleFileSelect = (file) => {
     setSelectedFile(file)
+  }
+
+  /**
+   * Handle upload database button click
+   */
+  const handleUploadDatabase = () => {
+    // Prevent multiple simultaneous operations
+    if (isSending || isCreatingDatabase) {
+      showError('Please wait for the current operation to complete')
+      return
+    }
+    
+    // Trigger file input click
+    const fileInput = document.createElement('input')
+    fileInput.type = 'file'
+    fileInput.accept = '.sql,.db'
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        // Validate file type
+        const allowedTypes = ['.sql', '.db']
+        const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'))
+        
+        if (!allowedTypes.includes(fileExtension)) {
+          showError('Please select a .sql or .db file')
+          return
+        }
+        
+        // Validate file size (50MB limit)
+        if (file.size > 50 * 1024 * 1024) {
+          showError('File size must be less than 50MB')
+          return
+        }
+        
+        setSelectedFile(file)
+        // Automatically send the file
+        handleFirstMessage(`Create a database from this file: ${file.name}`)
+      }
+    }
+    fileInput.click()
+  }
+
+  /**
+   * Handle create database from modal
+   */
+  const handleCreateDatabase = async (databaseName) => {
+    setIsCreatingDatabase(true)
+    // Close modal immediately when database creation starts
+    setShowCreateDatabaseModal(false)
+    
+    try {
+      // Send the create database message
+      await handleFirstMessage(`create a new database called ${databaseName}`)
+    } catch (error) {
+      console.error('Error creating database:', error)
+      showError('Failed to create database. Please try again.')
+      // Reopen modal on error so user can try again
+      setShowCreateDatabaseModal(true)
+    } finally {
+      setIsCreatingDatabase(false)
+    }
   }
 
   /**
@@ -633,18 +716,42 @@ export default function Chat() {
       // Call the backend to cancel the SQL operation and remove the message
       await chatAPI.cancelSQL(pendingMessageId)
       
-      // Remove the last message from the conversation (the one that triggered the confirmation)
-      setMessages(prev => {
-        // Remove the last message (the one that triggered SQL confirmation)
-        return prev.slice(0, -1)
-      })
+      // Check if this is a new conversation (no conversation ID or empty messages)
+      const isNewConversation = !currentConversationId || messages.length <= 1
+      
+      if (isNewConversation) {
+        // For new conversations, delete the conversation and go back to welcome dashboard
+        if (currentConversationId) {
+          try {
+            await chatAPI.deleteConversation(currentConversationId)
+          } catch (deleteError) {
+            console.error('Failed to delete conversation:', deleteError)
+            // Continue anyway - don't block the user
+          }
+        }
+        
+        // Reset state and go back to welcome dashboard
+        setMessages([{ id: 'm1', role: 'assistant', content: 'Hi! Ask me anything about your database.' }])
+        setCurrentConversationId(null)
+        setShowWelcome(true)
+        
+        // Refresh conversation list to remove the deleted conversation
+        loadConversations()
+        
+        showInfo('Operation cancelled - back to welcome dashboard')
+      } else {
+        // For existing conversations, just remove the last message
+        setMessages(prev => {
+          // Remove the last message (the one that triggered SQL confirmation)
+          return prev.slice(0, -1)
+        })
+        showSuccess('SQL operation cancelled')
+      }
       
       // Close the modal
       setShowSQLConfirmation(false)
       setPendingSQL('')
       setPendingMessageId(null)
-      
-      showSuccess('SQL operation cancelled')
       
     } catch (error) {
       logTechnicalError(error, 'cancel SQL operation')
@@ -662,7 +769,7 @@ export default function Chat() {
     <div className="chat-layout">
       <header className="chat-header">
         <div className="chat-header-left">
-          <Link to="/" className="chat-logo">askDB</Link>
+          <Link to="/" className="chat-logo">AskDB</Link>
           <span className="chat-title">Chat</span>
         </div>
         <div className="chat-header-right">
@@ -676,7 +783,7 @@ export default function Chat() {
 
       <main className="chat-main">
         <aside className="chat-sidebar">
-          <button className="new-chat-btn" onClick={startNewChat}>+ New chat</button>
+          <button className="new-chat-btn" onClick={startNewChat}>+ New conversation</button>
           
           <div className="sidebar-search">
             <QuerySearch
@@ -746,34 +853,64 @@ export default function Chat() {
             <div className="welcome-dashboard">
               <div className="welcome-header">
                 <h1>🚀 Welcome to AskDB</h1>
-                <p>Your AI-powered database assistant is ready to help!</p>
+                {databases.length === 0 ? (
+                  <p>To get started, choose how you'd like to create your first database</p>
+                ) : (
+                  <p>Start a new conversation with a database or skip to chat</p>
+                )}
               </div>
               
-              <div className="welcome-composer">
-                <form className="composer" onSubmit={handleSubmit}>
-                  <input
-                    className="composer-input"
-                    placeholder="Type your message here..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    disabled={isSending}
-                  />
-                  <div className="composer-actions">
-                    <FileUpload
-                      onFileSelect={handleFileSelect}
-                      disabled={isSending}
-                      maxSize={10 * 1024 * 1024}
-                      selectedFile={selectedFile}
-                    />
-                    <button 
-                      className="composer-send" 
-                      type="submit" 
-                      disabled={isSending || (!input.trim() && !selectedFile)}
-                    >
-                      {isSending ? "Sending..." : "Send"}
-                    </button>
+              <div className="welcome-actions">
+                <button 
+                  className="welcome-action-btn"
+                  onClick={handleUploadDatabase}
+                  disabled={isSending}
+                >
+                  <div className="welcome-action-icon">📁</div>
+                  <div className="welcome-action-content">
+                    <h3 className="welcome-action-title">Upload Database File</h3>
+                    <p className="welcome-action-description">Upload an existing .sql or .db file to get started quickly</p>
                   </div>
-                </form>
+                </button>
+                
+                <button 
+                  className="welcome-action-btn"
+                  onClick={() => {
+                    if (isSending || isCreatingDatabase) {
+                      showError('Please wait for the current operation to complete')
+                      return
+                    }
+                    setShowCreateDatabaseModal(true)
+                  }}
+                  disabled={isSending || isCreatingDatabase}
+                >
+                  <div className="welcome-action-icon">➕</div>
+                  <div className="welcome-action-content">
+                    <h3 className="welcome-action-title">Create New Database</h3>
+                    <p className="welcome-action-description">Start fresh with a new empty database</p>
+                  </div>
+                </button>
+
+                {databases.length > 0 && (
+                  <button 
+                    className="welcome-action-btn skip-btn"
+                    onClick={() => {
+                      if (isSending || isCreatingDatabase) {
+                        showError('Please wait for the current operation to complete')
+                        return
+                      }
+                      setShowWelcome(false)
+                      showInfo('New conversation started')
+                    }}
+                    disabled={isSending || isCreatingDatabase}
+                  >
+                    <div className="welcome-action-icon">⚡</div>
+                    <div className="welcome-action-content">
+                      <h3 className="welcome-action-title">Skip to Chat</h3>
+                      <p className="welcome-action-description">Start chatting with your existing databases</p>
+                    </div>
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -787,7 +924,7 @@ export default function Chat() {
               <div ref={listRef} className="message-list">
                 {messages.map((m) => (
                   <div key={m.id} className={`message-row ${m.role}`}>
-                    <div className="avatar" aria-hidden>{m.role === 'assistant' ? '🤖' : 'U'}</div>
+                    <div className="avatar" aria-hidden>{m.role === 'assistant' ? '🤖' : (user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U')}</div>
                     <div className="bubble">
                       {m.role === 'assistant' ? (
                         <MessageContent message={m} />
@@ -830,7 +967,7 @@ export default function Chat() {
                 />
                   <input
                     className="composer-input"
-                    placeholder="Message askDB..."
+                    placeholder="Message AskDB..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     disabled={isSending}
@@ -860,6 +997,13 @@ export default function Chat() {
         onRun={handleSQLConfirmation}
         onCancel={handleSQLCancellation}
         isLoading={isConfirmingSQL}
+      />
+      
+      <CreateDatabaseModal
+        isOpen={showCreateDatabaseModal}
+        onClose={() => setShowCreateDatabaseModal(false)}
+        onCreateDatabase={handleCreateDatabase}
+        isCreating={isCreatingDatabase}
       />
     </div>
   )

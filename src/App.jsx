@@ -12,7 +12,7 @@ function Welcome() {
     <div className="flex flex-col items-center justify-center h-screen welcome-bg welcome-content">
       <div className="welcome-split">
         <div className="welcome-left">
-          <h1 className="text-5xl font-bold">Welcome to askDB</h1>
+          <h1 className="text-5xl font-bold">Welcome to AskDB</h1>
           <h2 className="text-base font-semibold">Connect with your Data Base</h2>
         </div>
         <div className="welcome-right">
