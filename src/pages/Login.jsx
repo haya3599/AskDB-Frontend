@@ -75,13 +75,13 @@ function Login() {
           </div>
         </label>
         <label className="checkbox-label">
+          <span>Remember me</span>
           <input
             type="checkbox"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
             disabled={loading}
           />
-          <span>Remember me for 30 days</span>
         </label>
         <button type="submit" disabled={loading}>
           {loading ? (

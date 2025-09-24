@@ -1,0 +1,108 @@
+/* Error Boundary Styles */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #0b0e14;
+  color: #ffffff;
+  padding: 20px;
+}
+
+.error-boundary-content {
+  max-width: 500px;
+  text-align: center;
+  background: #1e293b;
+  border: 1px solid #263041;
+  border-radius: 12px;
+  padding: 40px 30px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.error-boundary-content h2 {
+  color: #ef4444;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.error-boundary-content p {
+  color: #a0aec0;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.error-boundary-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.error-retry-btn,
+.error-refresh-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-size: 14px;
+}
+
+.error-retry-btn {
+  background: #3759d6;
+  color: #ffffff;
+}
+
+.error-retry-btn:hover {
+  background: #2e49b4;
+  transform: translateY(-1px);
+}
+
+.error-refresh-btn {
+  background: #374151;
+  color: #ffffff;
+  border: 1px solid #4b5563;
+}
+
+.error-refresh-btn:hover {
+  background: #4b5563;
+  border-color: #6b7280;
+  transform: translateY(-1px);
+}
+
+.error-details {
+  text-align: left;
+  background: #0f131b;
+  border: 1px solid #1f2430;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.error-details summary {
+  color: #93c5fd;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.error-details summary:hover {
+  color: #60a5fa;
+}
+
+.error-stack {
+  color: #ef4444;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #000000;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #2d3748;
+  overflow-x: auto;
+}

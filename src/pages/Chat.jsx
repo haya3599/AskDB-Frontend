@@ -4,6 +4,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { chatAPI, databasesAPI } from '../services/api'
 import { extractErrorMessage, logTechnicalError } from '../utils/errorUtils'
+
+// Utility function to escape HTML characters
+const escapeHtml = (text) => {
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
 import MessageContent from '../components/MessageContent'
 import FileUpload from '../components/FileUpload'
 import QuerySearch from '../components/QuerySearch'
@@ -46,6 +53,7 @@ export default function Chat() {
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [databases, setDatabases] = useState([])
   const [selectedDatabaseId, setSelectedDatabaseId] = useState('')
+  const [showDatabaseAlert, setShowDatabaseAlert] = useState(false)
   
   // SQL Confirmation Modal state
   const [showSQLConfirmation, setShowSQLConfirmation] = useState(false)
@@ -59,6 +67,8 @@ export default function Chat() {
   
   // Refs and hooks
   const listRef = useRef(null)
+  const timeoutRefs = useRef([])
+  const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
   const { success: showSuccess, error: showError, info: showInfo } = useToast()
@@ -79,12 +89,13 @@ export default function Chat() {
   }, [isAuthenticated])
 
   // Check if user should see welcome dashboard (only for new users with no databases)
+  // Only show welcome dashboard on initial load, not when databases are refreshed
   useEffect(() => {
-    if (isAuthenticated() && databases.length === 0 && !showWelcome) {
-      // New user with no databases, show welcome dashboard
+    if (isAuthenticated() && databases.length === 0 && !showWelcome && conversations.length === 0) {
+      // New user with no databases and no conversations, show welcome dashboard
       setShowWelcome(true)
     }
-  }, [databases, isAuthenticated, showWelcome])
+  }, [databases, isAuthenticated, showWelcome, conversations.length])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -107,6 +118,18 @@ export default function Chat() {
     scrollContainer.addEventListener('scroll', handleScroll)
     return () => scrollContainer.removeEventListener('scroll', handleScroll)
   }, [messages]) // Re-attach when messages change
+
+  // Cleanup timeouts and file input on unmount
+  useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId))
+      timeoutRefs.current = []
+      if (fileInputRef.current) {
+        fileInputRef.current.remove()
+        fileInputRef.current = null
+      }
+    }
+  }, [])
 
   /**
    * Load user's conversation list from the backend
@@ -140,6 +163,13 @@ export default function Chat() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const trimmed = input.trim()
+    
+    // Validate input length
+    if (trimmed.length > 10000) {
+      showError('Message is too long. Please keep it under 10,000 characters.')
+      return
+    }
+    
     if ((!trimmed && !selectedFile) || isSending) return
     
     // If on welcome dashboard, allow sending without database selection
@@ -149,12 +179,17 @@ export default function Chat() {
     }
     
     if (!selectedDatabaseId && !selectedFile) {
+      setShowDatabaseAlert(true)
       showError('Please choose a database before sending a message.')
       return
     }
     
     // Add user message to chat immediately
-    const userMsg = { id: crypto.randomUUID(), role: 'user', content: trimmed || (selectedFile ? `Uploaded file: ${selectedFile.name}` : 'File uploaded') }
+    const userMsg = { 
+      id: crypto.randomUUID(), 
+      role: 'user', 
+      content: escapeHtml(trimmed || (selectedFile ? `Uploaded file: ${selectedFile.name}` : 'File uploaded'))
+    }
     setMessages((prev) => [...prev, userMsg])
     setInput('')
     setIsSending(true)
@@ -162,6 +197,12 @@ export default function Chat() {
     try {
       // Send message to backend with current conversation context and file
       const response = await chatAPI.sendMessage(trimmed, selectedFile, currentConversationId, selectedDatabaseId || null)
+      
+      // Defensive programming - ensure response data exists
+      if (!response?.data) {
+        throw new Error('Invalid response from server')
+      }
+      
       const { message, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
       
       // Clear selected file after sending
@@ -182,7 +223,7 @@ export default function Chat() {
         // Wait for user confirmation before adding message to chat
       } else {
         // Normal response - replace typing indicator with actual response after delay
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           setMessages(prev => {
             const newMessages = prev.filter(msg => msg.id !== 'typing')
             const assistantMsg = {
@@ -196,6 +237,7 @@ export default function Chat() {
             return [...newMessages, assistantMsg]
           })
         }, 800) // 800ms delay to show typing indicator
+        timeoutRefs.current.push(timeoutId)
       }
       
       // Update conversation ID for new or changed conversations
@@ -230,7 +272,11 @@ export default function Chat() {
     setIsSending(true)
     
     // Add user message to chat immediately and switch to chat mode
-    const userMsg = { id: crypto.randomUUID(), role: 'user', content: message || (selectedFile ? `Uploaded file: ${selectedFile.name}` : 'File uploaded') }
+    const userMsg = { 
+      id: crypto.randomUUID(), 
+      role: 'user', 
+      content: escapeHtml(message || (selectedFile ? `Uploaded file: ${selectedFile.name}` : 'File uploaded'))
+    }
     setMessages([userMsg])
     setInput('')
     setShowWelcome(false) // Switch to chat immediately
@@ -243,6 +289,12 @@ export default function Chat() {
     try {
       // Send message to backend
       const response = await chatAPI.sendMessage(message, selectedFile, null, selectedDatabaseId || null)
+      
+      // Defensive programming - ensure response data exists
+      if (!response?.data) {
+        throw new Error('Invalid response from server')
+      }
+      
       const { message: aiResponse, conversation_id, data, requiresConfirmation, messageId, sql } = response.data
       
       // Clear selected file after sending
@@ -257,7 +309,7 @@ export default function Chat() {
         setShowSQLConfirmation(true)
       } else {
         // Normal response - replace typing indicator with actual response after delay
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           setMessages(prev => {
             const newMessages = prev.filter(msg => msg.id !== 'typing')
             const assistantMsg = {
@@ -271,6 +323,7 @@ export default function Chat() {
             return [...newMessages, assistantMsg]
           })
         }, 800) // 800ms delay to show typing indicator
+        timeoutRefs.current.push(timeoutId)
       }
       
       // Update conversation ID
@@ -431,6 +484,9 @@ export default function Chat() {
    */
   const handleFileSelect = (file) => {
     setSelectedFile(file)
+    if (file) {
+      setShowDatabaseAlert(false)
+    }
   }
 
   /**
@@ -443,7 +499,12 @@ export default function Chat() {
       return
     }
     
-    // Trigger file input click
+    // Clean up any existing file input
+    if (fileInputRef.current) {
+      fileInputRef.current.remove()
+    }
+    
+    // Create new file input
     const fileInput = document.createElement('input')
     fileInput.type = 'file'
     fileInput.accept = '.sql,.db'
@@ -469,7 +530,16 @@ export default function Chat() {
         // Automatically send the file
         handleFirstMessage(`Create a database from this file: ${file.name}`)
       }
+      
+      // Clean up the file input after use
+      if (fileInputRef.current) {
+        fileInputRef.current.remove()
+        fileInputRef.current = null
+      }
     }
+    
+    // Store reference and trigger click
+    fileInputRef.current = fileInput
     fileInput.click()
   }
 
@@ -484,6 +554,8 @@ export default function Chat() {
     try {
       // Send the create database message
       await handleFirstMessage(`create a new database called ${databaseName}`)
+      // Ensure we stay in chat mode after database creation
+      setShowWelcome(false)
     } catch (error) {
       console.error('Error creating database:', error)
       showError('Failed to create database. Please try again.')
@@ -564,7 +636,7 @@ export default function Chat() {
 
       // Format data based on export format
       let content, filename, mimeType
-      
+
       switch (format) {
         case 'json':
           content = JSON.stringify(exportData, null, 2)
@@ -667,7 +739,7 @@ export default function Chat() {
       const { message, data } = response.data
       
       // Replace typing indicator with actual result after delay
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setMessages(prev => {
           const newMessages = prev.filter(msg => msg.id !== 'typing')
           const resultMsg = {
@@ -681,6 +753,7 @@ export default function Chat() {
           return [...newMessages, resultMsg]
         })
       }, 600) // 600ms delay for SQL execution
+      timeoutRefs.current.push(timeoutId)
       
       showSuccess('SQL executed successfully')
       
@@ -688,6 +761,9 @@ export default function Chat() {
       setShowSQLConfirmation(false)
       setPendingSQL('')
       setPendingMessageId(null)
+      
+      // Ensure we stay in chat mode after SQL execution
+      setShowWelcome(false)
       
       // Refresh conversation list
       loadConversations()
@@ -720,7 +796,7 @@ export default function Chat() {
       const isNewConversation = !currentConversationId || messages.length <= 1
       
       if (isNewConversation) {
-        // For new conversations, delete the conversation and go back to welcome dashboard
+        // For new conversations, delete the conversation but stay in chat mode
         if (currentConversationId) {
           try {
             await chatAPI.deleteConversation(currentConversationId)
@@ -730,15 +806,15 @@ export default function Chat() {
           }
         }
         
-        // Reset state and go back to welcome dashboard
+        // Reset state but stay in chat mode
         setMessages([{ id: 'm1', role: 'assistant', content: 'Hi! Ask me anything about your database.' }])
         setCurrentConversationId(null)
-        setShowWelcome(true)
+        setShowWelcome(false) // Stay in chat mode
         
         // Refresh conversation list to remove the deleted conversation
         loadConversations()
         
-        showInfo('Operation cancelled - back to welcome dashboard')
+        showInfo('Operation cancelled')
       } else {
         // For existing conversations, just remove the last message
         setMessages(prev => {
@@ -852,7 +928,9 @@ export default function Chat() {
           {showWelcome ? (
             <div className="welcome-dashboard">
               <div className="welcome-header">
-                <h1>🚀 Welcome to AskDB</h1>
+                <h1>
+                  <span className="emoji" role="img" aria-label="rocket">🚀</span> Welcome to AskDB
+                </h1>
                 {databases.length === 0 ? (
                   <p>To get started, choose how you'd like to create your first database</p>
                 ) : (
@@ -949,9 +1027,14 @@ export default function Chat() {
               <div className="composer-container">
                 <form className="composer" onSubmit={handleSubmit}>
                 <select
-                  className="db-selector"
+                  className={`db-selector ${showDatabaseAlert ? 'alert' : ''}`}
                   value={selectedDatabaseId}
-                  onChange={(e) => setSelectedDatabaseId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedDatabaseId(e.target.value)
+                    if (e.target.value) {
+                      setShowDatabaseAlert(false)
+                    }
+                  }}
                   disabled={isSending}
                   title="Select a database (optional)"
                 >
@@ -971,6 +1054,7 @@ export default function Chat() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     disabled={isSending}
+                    maxLength={10000}
                   />
                   <div className="composer-actions">
                     <FileUpload
@@ -979,7 +1063,7 @@ export default function Chat() {
                       maxSize={10 * 1024 * 1024} // 10MB
                       selectedFile={selectedFile}
                     />
-                    <button className="composer-send" type="submit" disabled={isSending || (!input.trim() && !selectedFile) || (!selectedDatabaseId && !selectedFile)}>
+                    <button className="composer-send" type="submit" disabled={isSending || (!input.trim() && !selectedFile)}>
                       Send
                     </button>
                   </div>

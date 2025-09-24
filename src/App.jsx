@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import ErrorBoundary from './components/ErrorBoundary'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Chat from './pages/Chat.jsx'
@@ -64,7 +65,9 @@ export default function App() {
         } />
         <Route path="/chat" element={
           <ProtectedRoute>
-            <Chat />
+            <ErrorBoundary>
+              <Chat />
+            </ErrorBoundary>
           </ProtectedRoute>
         } />
       </Routes>

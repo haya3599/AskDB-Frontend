@@ -101,6 +101,21 @@
   cursor: not-allowed;
 }
 
+.db-selector.alert {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  animation: alertPulse 1s ease-in-out;
+}
+
+@keyframes alertPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.3);
+  }
+}
+
 .db-refresh-btn {
   background: #1e293b;
   color: #ffffff;
@@ -470,6 +485,41 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.welcome-header h1 .emoji {
+  -webkit-text-fill-color: initial;
+  -webkit-background-clip: initial;
+  background: none !important;
+  color: initial !important;
+  background-clip: initial;
+  display: inline-block;
+  margin-right: 0.25em;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fallback for older browsers or CSS loading issues */
+.welcome-header h1 .emoji:not([style*="color"]) {
+  color: #ff6b35 !important; /* Orange fallback color for rocket */
+}
+
+/* Responsive design for emoji */
+@media (max-width: 768px) {
+  .welcome-header h1 .emoji {
+    font-size: 0.9em;
+    margin-right: 0.2em;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-header h1 .emoji {
+    font-size: 0.8em;
+    margin-right: 0.15em;
+  }
 }
 
 .welcome-header p {
