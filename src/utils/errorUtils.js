@@ -60,6 +60,10 @@ export const sanitizeErrorMessage = (errorMessage, context = 'operation') => {
     return 'This file type is not supported. Please use CSV, Excel, JSON, TXT, or SQL files.';
   }
 
+  if (message.includes('Only .sql and .db files are allowed')) {
+    return 'Only .sql and .db files are allowed for database uploads.';
+  }
+
   if (message.includes('failed to execute sql file')) {
     return 'There was an error processing your SQL file. Please check the file format and try again.';
   }

@@ -257,7 +257,7 @@ export default function Chat() {
       const errorMsg = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+        content: userFriendlyMessage
       }
       setMessages((prev) => [...prev, errorMsg])
     } finally {
@@ -355,7 +355,7 @@ export default function Chat() {
         const errorMsg = {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: 'Sorry, I encountered an error. Please try again.'
+          content: userFriendlyMessage
         }
         setMessages((prev) => [...prev, errorMsg])
       }
