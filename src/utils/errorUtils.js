@@ -64,6 +64,14 @@ export const sanitizeErrorMessage = (errorMessage, context = 'operation') => {
     return 'Only .sql and .db files are allowed for database uploads.';
   }
 
+  if (message.includes('Unknown column') && message.includes('where clause')) {
+    return message; // Show the original MySQL error message
+  }
+
+  if (message.includes('Unknown column')) {
+    return message; // Show the original MySQL error message
+  }
+
   if (message.includes('failed to execute sql file')) {
     return 'There was an error processing your SQL file. Please check the file format and try again.';
   }
